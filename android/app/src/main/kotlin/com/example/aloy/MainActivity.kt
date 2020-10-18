@@ -1,4 +1,4 @@
-package felix.alec.aloy
+package com.example.aloy
 
 import io.flutter.embedding.android.FlutterActivity
 
