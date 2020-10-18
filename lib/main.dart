@@ -105,6 +105,7 @@ class _HomeScreenLedOnState extends State<HomeScreen> {
         _addDeviceToList(result.device);
       }
     });
+    widget.flutterBlue.startScan();
   }//initState
 
   ListView _buildListViewOfDevices() {
