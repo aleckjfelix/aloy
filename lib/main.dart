@@ -44,6 +44,7 @@
 *     -> Info about the App/Why created/Who it's for, ect..
 *
  */
+import 'package:aloy/bluetooth/LedBleBloc.dart';
 import 'package:aloy/widgets/ColorWheel/ColorWheel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -70,10 +71,7 @@ class MyApp extends StatelessWidget {
  * Nav to: Menu
  */
 class HomeScreen extends StatefulWidget {
-  final FlutterBlue flutterBlue = FlutterBlue.instance;
-  final List<BluetoothDevice> devices = new List<BluetoothDevice>();
-  BluetoothDevice connectedDevice;
-  List<BluetoothService> services;
+
   @override
   State<StatefulWidget> createState() {
     return _HomeScreenLedState();
@@ -139,8 +137,9 @@ class _HomeScreenLedState extends State<HomeScreen> {
               handlePos: 0.0,
               svHandlePos: Offset(0.0,0.0),
               showInnerColor: false,
-              onSelectionChange: (HSVColor ledColor) {
-
+              onSelectionChange: (Color ledColor) {
+                if(!LedBleBloc.sendLedColor(ledColor))
+                  _showMyDialog();
               },
 
             ),
@@ -233,41 +232,25 @@ class _HomeScreenLedState extends State<HomeScreen> {
     );
   }//build
 
-  _addDeviceToList(final BluetoothDevice device){
-    if(!widget.devices.contains(device)){
-      setState(() {
-        widget.devices.add(device);
-      });
-    }//list does'nt contain device
-  }//_addDeviceToList
-
   @override
   void initState(){
     super.initState();
     print("initState");
     currentColor = activeColor;
     ledsOn = true;
-    widget.flutterBlue.connectedDevices.asStream().listen((List<BluetoothDevice> devices) {
-      for(BluetoothDevice device in devices)
-        _addDeviceToList(device);
-    });
-    widget.flutterBlue.scanResults.listen((List<ScanResult> results){
-      for(ScanResult result in results) {
-        _addDeviceToList(result.device);
-      }
-    });
-    widget.flutterBlue.startScan();
+
+    LedBleBloc.startScanForBluetoothDevices();
   }//initState
 
   ListView _buildListViewOfDevices() {
-    List<Widget> containers = new List<Widget>();
+    List<Widget> containers = <Widget>[];
     containers.add(DrawerHeader(
         child: Text('Devices'),
         decoration: BoxDecoration(
             color: Colors.white
         )
     ));
-    for (BluetoothDevice device in widget.devices) {
+    for (BluetoothDevice device in LedBleBloc.devices) {
       containers.add(
         Container(
             height: 100,
@@ -281,25 +264,12 @@ class _HomeScreenLedState extends State<HomeScreen> {
                     ],
                   ),
                 ),
-                FlatButton(
-                    color: Colors.blue,
+                TextButton(
                     child: Text(
-                      'Connect',
-                      style: TextStyle(color: Colors.white),
+                      'Connect'
                     ),
                     onPressed: () {
-                      setState(() async{
-                        widget.flutterBlue.stopScan();
-                        try{
-                          await device.connect();
-                        }catch(e) {
-                          if(e.code != 'already_connected')
-                            throw e;
-                        }finally {
-                          widget.services = await device.discoverServices();
-                        }
-                        widget.connectedDevice = device;
-                      });
+                      setState(() => LedBleBloc.connectToDevice);
                     }
                 ),
               ],
@@ -314,6 +284,32 @@ class _HomeScreenLedState extends State<HomeScreen> {
         ...containers,
       ],
     );
-  }
+  } // _buildListViewOfDevices
 
-}//_HomeScreenLedOnState
+  Future<void> _showMyDialog() async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Alert! Title'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text('LEDs aren\'t connected!')
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Approve'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+} // _HomeScreenLedState

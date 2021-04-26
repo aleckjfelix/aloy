@@ -21,7 +21,6 @@ class ArcedSliderSliderPainter extends CustomPainter {
   ArcedSliderSliderPainter(
     {@required this.startPos,
     @required this.selectionColor,
-    @required this.startPos,
     @required this.startAngle,
     @required this.sweepAngle});
 

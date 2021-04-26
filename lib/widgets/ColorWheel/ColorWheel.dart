@@ -107,6 +107,7 @@ class _ColorWheelState extends State<ColorWheel> {
   PointerStatus _pointerStatus; // where pointer was initially
   bool _showSvSelector;
   Offset _svHandlePos;
+  Offset _oldPointerPos;
   void initState() {
     super.initState();
     _currentHsvColor = HSVColor.fromAHSV(1.0, _angleToHue(widget.handlePos), 1.0, 1.0);
@@ -114,6 +115,8 @@ class _ColorWheelState extends State<ColorWheel> {
     _pointerStatus = PointerStatus.none;
     _showSvSelector = false;
     _svHandlePos = widget.svHandlePos;
+
+    _oldPointerPos = null;
   } // initState
 
   @override
@@ -171,12 +174,13 @@ class _ColorWheelState extends State<ColorWheel> {
 
     RenderBox renderBox = context.findRenderObject();
     Offset pointerPos = renderBox.globalToLocal(details.globalPosition);
+    _oldPointerPos = pointerPos;
 
     if(pointerPos == null)
       return;
 
     // perform calc for various measurments of color wheel
-    // TODO find way to just get these from the painters
+    // TODO find way to just get these from the painters since they are used there
 
     double handleRadius = widget.outerBaseStrokeWidth / 2 + 2;
 
@@ -230,18 +234,22 @@ class _ColorWheelState extends State<ColorWheel> {
     if(_pointerStatus == PointerStatus.none)
       return;
 
-    if(_pointerStatus == PointerStatus.insideSliderRing){
-      _pointerStatus = PointerStatus.none;
-      return;
-    } // an on tap functions so if a pan is registered it is not a tap
-
     // calculate new pointer Position and use to update _handleAngle
     RenderBox renderBox = context.findRenderObject();
     Offset pointerPos = renderBox.globalToLocal(details.globalPosition);
     Offset canvasCenter = Offset(renderBox.size.width/2, renderBox.size.height/2);
 
+
     if(pointerPos == null)
       return;
+
+    if(_pointerStatus == PointerStatus.insideSliderRing){
+      // TODO : check that there was a significant move in the finger
+      if((pointerPos.dx - _oldPointerPos.dx).abs() > 3 || (pointerPos.dy - _oldPointerPos.dy).abs() > 3){
+        _pointerStatus = PointerStatus.none;
+      }
+      return;
+    } // an on tap functions so if a pan is registered it is not a tap
 
     double baseRadius = (min(renderBox.size.width, renderBox.size.height) - widget.outerBaseStrokeWidth) / 2 - widget.padding;
     double svSelectorWidth = 2 * (baseRadius - widget.outerBaseStrokeWidth/2) / sqrt2;
@@ -271,7 +279,7 @@ class _ColorWheelState extends State<ColorWheel> {
       _handleAngle = MathUtils.coordinatesToAngle(pointerPos, canvasCenter);
       _currentHsvColor = _currentHsvColor.withHue(_angleToHue(_handleAngle));
     });
-    widget.onSelectionChange(_currentHsvColor); // call callback function and pass current HSVColor
+    widget.onSelectionChange(_currentHsvColor.toColor()); // call callback function and pass current HSVColor
   } // _updateHandleToPointer
 
   void _updateSVHandleToPointer(Offset pointerPos, Offset svOrigin, double svSelectorWidth){
@@ -295,7 +303,7 @@ class _ColorWheelState extends State<ColorWheel> {
       _currentHsvColor = _currentHsvColor.withValue(_svHandlePos.dy/svSelectorWidth);
     }); // update _svHandle triggers rebuild
 
-    widget.onSelectionChange(_currentHsvColor); // call callback function and pass current HSVColor
+    widget.onSelectionChange(_currentHsvColor.toColor()); // call callback function and pass current HSVColor
   } // _updateSVHandleToPointer
 
   double _angleToHue(double angle){
