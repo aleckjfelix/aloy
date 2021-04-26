@@ -269,7 +269,7 @@ class _HomeScreenLedState extends State<HomeScreen> {
                       'Connect'
                     ),
                     onPressed: () {
-                      setState(() => LedBleBloc.connectToDevice);
+                      setState(() => LedBleBloc.connectToDevice(device));
                     }
                 ),
               ],
