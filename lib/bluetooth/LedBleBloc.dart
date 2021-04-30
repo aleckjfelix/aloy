@@ -7,13 +7,13 @@ import 'package:flutter_blue/flutter_blue.dart';
 class LedBleBloc {
   static final FlutterBlue flutterBlue = FlutterBlue.instance;
   static List<BluetoothDevice> devices = <BluetoothDevice>[];
-  static BluetoothDevice connectedDevice;
-  static List<BluetoothService> services;
-  static List<BluetoothCharacteristic> characteristics;
+  static BluetoothDevice? connectedDevice;
+  static List<BluetoothService>? services;
+  static List<BluetoothCharacteristic>? characteristics;
 
-  static BluetoothService hm10_service;
+  static BluetoothService? hm10_service;
   static final Guid HM10_CUSTOM_UUID = Guid("0000FFE0-0000-1000-8000-00805F9B34FB");
-  static BluetoothCharacteristic hm10_characteristic;
+  static BluetoothCharacteristic? hm10_characteristic;
 
 
   static startScanForBluetoothDevices(){
@@ -45,19 +45,19 @@ class LedBleBloc {
     try{
       await device.connect();
       connectedDevice = device;
-    }catch(e) {
-      if(e.code != 'already_connected')
-        throw e;
-    }finally {
+
       services = await device.discoverServices();
       _discoverServices();
+    }catch(e) {
+      if(e.toString() != 'already_connected')
+        throw e;
     }
   } // _connectToDevice
 
   static bool sendLedColor(Color rgbColor) {
-    if(hm10_characteristic == null)
-      return false;
-    hm10_characteristic.write([rgbColor.red, rgbColor.blue, rgbColor.green]);
+   // if(hm10_characteristic == null)
+     // return false;
+    hm10_characteristic!.write([rgbColor.red, rgbColor.blue, rgbColor.green]);
     return true;
   } //sendLedColor
 
@@ -65,7 +65,7 @@ class LedBleBloc {
    *  return true if found HM-10 custom service
    */
   static bool _discoverServices() {
-    for(BluetoothService service in services) {
+    for(BluetoothService service in services!) {
       if(service.uuid == HM10_CUSTOM_UUID) {
         hm10_service = service;
         characteristics = service.characteristics;
@@ -73,10 +73,11 @@ class LedBleBloc {
         return true;
       }
     }
+    return false;
   }
 
   static void _discoverCharacteristic() {
-    hm10_characteristic = hm10_service.characteristics.first;
+    hm10_characteristic = hm10_service!.characteristics.first;
   }
 
 

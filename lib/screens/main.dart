@@ -50,6 +50,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 
+import 'FindDevice.dart';
+
 /*
  * main method
  */
@@ -60,7 +62,7 @@ void main() {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(home: HomeScreen());
+    return MaterialApp(home: HomeScreen(device: null));
   }//build
 
 }//MyApp
@@ -71,6 +73,9 @@ class MyApp extends StatelessWidget {
  * Nav to: Menu
  */
 class HomeScreen extends StatefulWidget {
+  final BluetoothDevice? device;
+
+  const HomeScreen({Key? key, required this.device}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
@@ -85,8 +90,9 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenLedState extends State<HomeScreen> {
   // mutable data
   Color activeColor = Colors.black; // would like to set these in the settings
-  Color deactiveColor = Colors.grey[400];
-  Color currentColor = Colors.grey[400];
+  Color deactiveColor = Colors.grey[400]!;
+  Color currentColor = Colors.grey[400]!;
+  Color primaryColor = Colors.pink[100]!;
   bool ledsOn = false;
   @override
   Widget build(BuildContext context) {
@@ -122,11 +128,12 @@ class _HomeScreenLedState extends State<HomeScreen> {
       body:
           Center(
             child: ColorWheel(
-              deactiveColor:  Colors.grey[400],
-              activeColor: activeColor,
+              deactiveColor:  Colors.grey[400]!,
+             // activeColor: activeColor,
               isActive: ledsOn,
               handleColor: Colors.white,
-              innerColor: null,
+             // innerColor: null,
+             // innerColor: null,
               animateChild: false,
               width: 375,
               height: 375,
@@ -138,96 +145,65 @@ class _HomeScreenLedState extends State<HomeScreen> {
               svHandlePos: Offset(0.0,0.0),
               showInnerColor: false,
               onSelectionChange: (Color ledColor) {
-                if(!LedBleBloc.sendLedColor(ledColor))
-                  _showMyDialog();
+              //  if(!LedBleBloc.sendLedColor(ledColor))
+               //   _showMyDialog();
               },
-
             ),
           ),
-      bottomNavigationBar: BottomAppBar(
-        color: currentColor,
-        elevation: 0,
-        child: Container(
-          margin: const EdgeInsets.all(2),
-          child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: <Widget>[
-                Flexible(
-                  fit: FlexFit.tight,
-                  child: Container(
-                    decoration: BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.rectangle
-                    ),
-                    child: IconButton(
-                        icon: Icon(Icons.music_note),
-                        onPressed: null
-                    ),
-                  ),
-                ),
-                SizedBox(width: 0.2),
-                Flexible(
-                  fit: FlexFit.tight,
-                  child: Container(
-                    decoration: BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.rectangle
-                    ),
-                    child: IconButton(
-                        icon: Icon(Icons.timeline),
-                        onPressed: null
-                    ),
-                  ),
-                ),
-                SizedBox(width: 0.2),
-                Flexible(
-                  fit: FlexFit.tight,
-                  child: Container(
-                    decoration: BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.rectangle
-                    ),
-                    child: IconButton(
-                        icon: Icon(Icons.schedule_outlined),
-                        onPressed: null
-                    ),
-                  ),
-                ),
-                SizedBox(width: 0.2),
-                Flexible(
-                  fit: FlexFit.tight,
-                  child: Container(
-                    decoration: BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.rectangle
-                    ),
-                    child: IconButton(
-                        icon: Icon(Icons.info_outlined),
-                        onPressed: null
-                    ),
-                  ),
-                ),
-                SizedBox(width: 0.2),
-                Flexible(
-                  fit: FlexFit.tight,
-                  child: Container(
-                    decoration: BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.rectangle
-                    ),
-                    child: IconButton(
-                        icon: Icon(Icons.settings),
-                        onPressed: null
-                    ),
-                  ),
-                ),
-              ]
-          ),
-        ),
-      ),
       drawer: Drawer(
-          child: _buildListViewOfDevices()
+          child: ListView(
+            padding: EdgeInsets.zero,
+            children: <Widget>[
+              DrawerHeader(
+                decoration: BoxDecoration(
+                  color: primaryColor
+                ),
+                child: Text(
+                  'Drawer Header',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 24
+                  )
+                )
+              ),
+              ExpansionTile(
+                leading: Icon(Icons.music_note),
+                title: Text('Music Mode')
+              ),
+              ExpansionTile(
+                  leading: Icon(Icons.timeline),
+                  title: Text('Animator Mode')
+              ),
+              ListTile(
+                  leading: Icon(Icons.schedule_outlined),
+                  title: Text('Scheduler')
+              ),
+              ExpansionTile(
+                  leading: Icon(Icons.bluetooth),
+                  title: Text('Devices'),
+                  children: <Widget>[
+                    Text('Status: ${widget.device != null ? widget.device!.name : 'not connected'}'),
+                    TextButton(
+                      child: Text('Find Device'),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => FindDevice())
+                        );
+                      } // onPressed
+                    )
+                  ]
+              ),
+              ListTile(
+                  leading: Icon(Icons.info_outlined),
+                  title: Text('About')
+              ),
+              ListTile(
+                  leading: Icon(Icons.settings),
+                  title: Text('Settings')
+              ),
+            ]
+          )
       ),
     );
   }//build
@@ -242,49 +218,6 @@ class _HomeScreenLedState extends State<HomeScreen> {
     LedBleBloc.startScanForBluetoothDevices();
   }//initState
 
-  ListView _buildListViewOfDevices() {
-    List<Widget> containers = <Widget>[];
-    containers.add(DrawerHeader(
-        child: Text('Devices'),
-        decoration: BoxDecoration(
-            color: Colors.white
-        )
-    ));
-    for (BluetoothDevice device in LedBleBloc.devices) {
-      containers.add(
-        Container(
-            height: 100,
-            child: Row(
-              children: <Widget>[
-                Expanded(
-                  child: Column(
-                    children: <Widget>[
-                      Text(device.name == '' ? '(unknown device)' : device.name),
-                      Text(device.id.toString()),
-                    ],
-                  ),
-                ),
-                TextButton(
-                    child: Text(
-                      'Connect'
-                    ),
-                    onPressed: () {
-                      setState(() => LedBleBloc.connectToDevice(device));
-                    }
-                ),
-              ],
-            )
-        ),
-      );
-    }
-
-    return ListView(
-      padding: EdgeInsets.zero,
-      children: <Widget>[
-        ...containers,
-      ],
-    );
-  } // _buildListViewOfDevices
 
   Future<void> _showMyDialog() async {
     return showDialog<void>(
@@ -297,6 +230,33 @@ class _HomeScreenLedState extends State<HomeScreen> {
             child: ListBody(
               children: <Widget>[
                 Text('LEDs aren\'t connected!')
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Approve'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _showConnectToDeviceDialog() async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Alert! Title'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text('Connected to device')
               ],
             ),
           ),

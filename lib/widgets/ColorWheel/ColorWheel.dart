@@ -39,7 +39,7 @@ enum PointerStatus {
 class ColorWheel extends StatefulWidget {
   /* Color of Wheel when active or deactive */
   final Color deactiveColor;
-  final Color activeColor;
+  //final Color activeColor;
   final Color handleColor;
 
 
@@ -48,7 +48,7 @@ class ColorWheel extends StatefulWidget {
   final Color innerColor; // * not used rn
   final bool showInnerColor;
   /* vars for the child widget inscribed in the ColorWheel */
-  final Widget child;
+  final Widget? child;
   final bool animateChild;/* if true child widget can be animated */
 
   /* width and height of canvas for this widget  default: */
@@ -60,7 +60,7 @@ class ColorWheel extends StatefulWidget {
 
   /*variables needed for ColorWheel functionality */
   final double handlePos;
-  final Function onSelectionChange;
+  final Function? onSelectionChange;
   final Offset svHandlePos;
 
   /* drawing vars used in the Painters */
@@ -71,23 +71,23 @@ class ColorWheel extends StatefulWidget {
 
 
   ColorWheel({
-    @required this.deactiveColor,
-    @required this.activeColor,
-    @required this.innerBaseStrokeWidth,
-    @required this.outerBaseStrokeWidth,
-    @required this.handleStrokeWidth,
-    @required this.handlePos,
+    @required this.deactiveColor=Colors.grey,
+   // @required this.activeColor,
+    @required this.innerBaseStrokeWidth=18.0,
+    @required this.outerBaseStrokeWidth=21.0,
+    @required this.handleStrokeWidth=2.0,
+    @required this.handlePos=0.0,
     @required this.onSelectionChange,
     @required this.child,
-    @required this.isActive,
-    @required this.handleColor,
-    this.innerColor,
-    @required this.animateChild,
-    @required this.height,
-    @required this.width,
-    @required this.padding,
-    @required this.svHandlePos,
-    @required this.showInnerColor
+    @required this.isActive=true,
+    @required this.handleColor=Colors.white,
+    this.innerColor=Colors.white,
+    @required this.animateChild=false,
+    @required this.height=375,
+    @required this.width=375,
+    @required this.padding=8.0,
+    @required this.svHandlePos= const Offset(0.0,0.0),
+    @required this.showInnerColor=false
   }); // constructor
 
 
@@ -102,12 +102,12 @@ class ColorWheel extends StatefulWidget {
  * Class for the mutable state data and Widget building
  */
 class _ColorWheelState extends State<ColorWheel> {
-  HSVColor _currentHsvColor; // the currently selected color
-  double _handleAngle;
-  PointerStatus _pointerStatus; // where pointer was initially
-  bool _showSvSelector;
-  Offset _svHandlePos;
-  Offset _oldPointerPos;
+  HSVColor _currentHsvColor = HSVColor.fromAHSV(1.0, 0.0, 1.0, 1.0); // the currently selected color
+  double _handleAngle = 0.0;
+  PointerStatus _pointerStatus = PointerStatus.none; // where pointer was initially
+  bool _showSvSelector = false;
+  Offset _svHandlePos = Offset(0.0,0.0);
+  Offset? _oldPointerPos;
   void initState() {
     super.initState();
     _currentHsvColor = HSVColor.fromAHSV(1.0, _angleToHue(widget.handlePos), 1.0, 1.0);
@@ -172,7 +172,7 @@ class _ColorWheelState extends State<ColorWheel> {
     if(!widget.isActive)
       return;
 
-    RenderBox renderBox = context.findRenderObject();
+    RenderBox renderBox = context.findRenderObject() as RenderBox;
     Offset pointerPos = renderBox.globalToLocal(details.globalPosition);
     _oldPointerPos = pointerPos;
 
@@ -235,7 +235,7 @@ class _ColorWheelState extends State<ColorWheel> {
       return;
 
     // calculate new pointer Position and use to update _handleAngle
-    RenderBox renderBox = context.findRenderObject();
+    RenderBox renderBox = context.findRenderObject() as RenderBox;
     Offset pointerPos = renderBox.globalToLocal(details.globalPosition);
     Offset canvasCenter = Offset(renderBox.size.width/2, renderBox.size.height/2);
 
@@ -245,7 +245,7 @@ class _ColorWheelState extends State<ColorWheel> {
 
     if(_pointerStatus == PointerStatus.insideSliderRing){
       // TODO : check that there was a significant move in the finger
-      if((pointerPos.dx - _oldPointerPos.dx).abs() > 3 || (pointerPos.dy - _oldPointerPos.dy).abs() > 3){
+      if((pointerPos.dx - _oldPointerPos!.dx).abs() > 3 || (pointerPos.dy - _oldPointerPos!.dy).abs() > 3){
         _pointerStatus = PointerStatus.none;
       }
       return;
@@ -279,7 +279,7 @@ class _ColorWheelState extends State<ColorWheel> {
       _handleAngle = MathUtils.coordinatesToAngle(pointerPos, canvasCenter);
       _currentHsvColor = _currentHsvColor.withHue(_angleToHue(_handleAngle));
     });
-    widget.onSelectionChange(_currentHsvColor.toColor()); // call callback function and pass current HSVColor
+    widget.onSelectionChange!(_currentHsvColor.toColor()); // call callback function and pass current HSVColor
   } // _updateHandleToPointer
 
   void _updateSVHandleToPointer(Offset pointerPos, Offset svOrigin, double svSelectorWidth){
@@ -303,7 +303,7 @@ class _ColorWheelState extends State<ColorWheel> {
       _currentHsvColor = _currentHsvColor.withValue(_svHandlePos.dy/svSelectorWidth);
     }); // update _svHandle triggers rebuild
 
-    widget.onSelectionChange(_currentHsvColor.toColor()); // call callback function and pass current HSVColor
+    widget.onSelectionChange!(_currentHsvColor.toColor()); // call callback function and pass current HSVColor
   } // _updateSVHandleToPointer
 
   double _angleToHue(double angle){

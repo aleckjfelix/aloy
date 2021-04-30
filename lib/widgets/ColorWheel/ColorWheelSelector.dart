@@ -34,23 +34,23 @@ class ColorWheelSelector extends CustomPainter {
   final Offset svHandlePos;
   // -- internal
   // variables --
-  Offset _center; // center of this Painter's drawable space
-  Rect _boundingRect; // rect representing CustomPainters drawable area
-  double _radius; // radius of the ColorWheelBase (to center of ring)
-  Offset handleCenter; // Offset to the center of where handle should be drawn
-  double _svSelectorWidth;
-  Offset svOrigin;
+  Offset _center = Offset(187.5,187.5); // center of this Painter's drawable space
+  Rect _boundingRect = Rect.fromCenter(center: Offset(187.5,187.5), width: 375, height: 375); // rect representing CustomPainters drawable area
+  double? _radius; // radius of the ColorWheelBase (to center of ring)
+  Offset? handleCenter; // Offset to the center of where handle should be drawn
+  double? _svSelectorWidth;
+  Offset? svOrigin;
   ColorWheelSelector({
-      @required this.handleColor,
-      @required this.handleAngle,
-      @required this.isActive,
-      @required this.handleStokeWidth,
-      @required this.outerStrokeWidth,
-      @required this.padding,
-      @required this.innerStrokeWidth,
-      @required this.showSVSelector,
-      @required this.hsvColor,
-      @required this.svHandlePos
+      @required this.handleColor = Colors.white,
+      @required this.handleAngle = 0.0,
+      @required this.isActive = true,
+      @required this.handleStokeWidth = 2.0,
+      @required this.outerStrokeWidth = 21.0,
+      @required this.padding = 8.0,
+      @required this.innerStrokeWidth = 18.0,
+      @required this.showSVSelector = false,
+      @required this.hsvColor = const HSVColor.fromAHSV(1.0, 0.0, 1.0, 1.0),
+      @required this.svHandlePos = const Offset(0.0,0.0)
       }); // radius for the Circular base ring
 
   @override
@@ -74,16 +74,16 @@ class ColorWheelSelector extends CustomPainter {
       //..strokeWidth = 12.0; // outer ringed circle
 
     // get the coordinates of handle
-    handleCenter = MathUtils.angleToCoordinates(_radius, _center, handleAngle);
+    handleCenter = MathUtils.angleToCoordinates(_radius!, _center, handleAngle);
     // calc radius of the handle's outer circle
     double outerRadius = outerStrokeWidth/2 + 2;
 
     if(showSVSelector){
       // Calc width of maximum square within circle
-      _svSelectorWidth = 2 * (_radius - outerStrokeWidth/2) / sqrt2;
+      _svSelectorWidth = 2 * (_radius! - outerStrokeWidth/2) / sqrt2;
 
       // calculate rounded rectangle for SV Selector
-      Rect svRect = Rect.fromCenter(center: _center, width: _svSelectorWidth, height: _svSelectorWidth);
+      Rect svRect = Rect.fromCenter(center: _center, width: _svSelectorWidth!, height: _svSelectorWidth!);
       RRect svRRect = RRect.fromRectAndRadius(
           svRect,
           Radius.circular(15.0));
@@ -92,7 +92,7 @@ class ColorWheelSelector extends CustomPainter {
       Path svPath = Path();
       svPath.addRRect(svRRect);
 
-      canvas.drawShadow(svPath, Colors.grey[900], 2.0, true);
+      canvas.drawShadow(svPath, Colors.grey[900]!, 2.0, true);
 
       final Gradient gradientV = LinearGradient(
         begin: Alignment.topCenter,
@@ -118,13 +118,13 @@ class ColorWheelSelector extends CustomPainter {
       ); // draw overtop to create 2D gradient
 
       // draw SVHandle
-      svOrigin = Offset(_center.dx - _svSelectorWidth /2, _center.dy + _svSelectorWidth /2);
+      svOrigin = Offset(_center.dx - _svSelectorWidth! /2, _center.dy + _svSelectorWidth! /2);
      // print("svOrigin(CWS) :" + svOrigin.toString() + " svHandle: " + svHandlePos.toString());
-      canvas.drawCircle(MathUtils.otherCoordsToCanvasCoords(svHandlePos, svOrigin), outerRadius * 0.68, handleOuter);
+      canvas.drawCircle(MathUtils.otherCoordsToCanvasCoords(svHandlePos, svOrigin!), outerRadius * 0.68, handleOuter);
 
     } // draw SV Selector is showSv
-    canvas.drawCircle(handleCenter, outerRadius * 0.68, handleInner);
-    canvas.drawCircle(handleCenter, outerRadius, handleOuter);
+    canvas.drawCircle(handleCenter!, outerRadius * 0.68, handleInner);
+    canvas.drawCircle(handleCenter!, outerRadius, handleOuter);
   } // paint
 
   @override

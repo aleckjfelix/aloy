@@ -28,10 +28,10 @@ class ColorWheelBase extends CustomPainter {
   final bool showInnerColor; // whether to use innerColor
 
   // -- internal variables --
-  Offset _center; // center of this Painter's drawable space
-  Rect _boundingRect; // rect representing CustomPainters drawable area
-  double _radius; // radius for the Circular base ring
-  double _innerRadius;
+  Offset _center = Offset(187.5,187.5); // center of this Painter's drawable space
+  Rect _boundingRect = Rect.fromCenter(center: Offset(187.5,187.5), width: 375, height: 375); // rect representing CustomPainters drawable area
+  double? _radius; // radius for the Circular base ring
+  double? _innerRadius;
 
   static final List<Color> _wheelDistinctColors = [
   const HSVColor.fromAHSV(1.0, 360.0, 1.0, 1.0).toColor(),
@@ -46,20 +46,33 @@ class ColorWheelBase extends CustomPainter {
   static final Gradient _colorGradient = SweepGradient(startAngle: 0.0,
       endAngle: pi * 2,
       colors: _wheelDistinctColors); // create Circular Gradient between the distinct colors
-  static Paint _gradientPaint;
-  static Paint _borderColor;
-  static Paint _innerColor;
+
+  static Paint _gradientPaint = Paint()
+    ..strokeCap = StrokeCap.round
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 18.0
+    ..shader = _colorGradient.createShader(Rect.fromCenter(center: Offset(187.5,187.5), width: 375, height: 375));
+
+  static Paint _borderColor =  Paint()
+    ..strokeCap = StrokeCap.round
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 21.0
+    ..color = Colors.black
+    ..isAntiAlias = true;
+
+  static Paint _innerColor = Paint()
+    ..style = PaintingStyle.fill;
   //canvas.drawRect(rect, Paint()..shader = gradient.createShader(rect));
 
   ColorWheelBase({
-    @required this.deactiveColor,
-    @required this.hsvColor,
-    @required this.isActive,
-    @required this.padding,
-    @required this.innerStrokeWidth,
-    @required this.outerCircleStroke,
+    @required this.deactiveColor= Colors.grey,
+    @required this.hsvColor= const HSVColor.fromAHSV(1.0, 0.0, 1.0, 1.0),
+    @required this.isActive=true,
+    @required this.padding=8.0,
+    @required this.innerStrokeWidth=18.0,
+    @required this.outerCircleStroke=21.0,
     innerColor,
-    @required this.showInnerColor
+    @required this.showInnerColor = false
   }) : this.innerColor = innerColor ?? Colors.white;
 
   @override
@@ -67,11 +80,11 @@ class ColorWheelBase extends CustomPainter {
     _center = Offset(size.width / 2, size.height / 2);
     _radius = (min(size.width, size.height) - outerCircleStroke) / 2 - padding;
     _boundingRect = Rect.fromCenter(center: _center, width: size.width, height: size.height);
-    _innerRadius = _radius - innerStrokeWidth/2;
+    _innerRadius = _radius! - innerStrokeWidth/2;
 
     // draw shadow
     Path shadowPath = Path();
-    shadowPath.addOval(Rect.fromCircle(center: _center, radius: _radius + padding));
+    shadowPath.addOval(Rect.fromCircle(center: _center, radius: _radius! + padding));
     Paint shadowPaint = Paint()
       ..color = Colors.black.withOpacity(1.0)
       ..maskFilter = MaskFilter.blur(BlurStyle.normal, 10);
@@ -97,14 +110,14 @@ class ColorWheelBase extends CustomPainter {
           _innerColor.color = innerColor;
          else
            _innerColor.color = hsvColor.toColor();
-        canvas.drawCircle(_center, _innerRadius, _innerColor);
+        canvas.drawCircle(_center, _innerRadius!, _innerColor);
 
-      canvas.drawCircle(_center, _radius, _borderColor);
-      canvas.drawCircle(_center, _radius, _gradientPaint); // gradien
+      canvas.drawCircle(_center, _radius!, _borderColor);
+      canvas.drawCircle(_center, _radius!, _gradientPaint); // gradien
       //draw inner
     } else{
-      canvas.drawCircle(_center, _radius, _borderColor);
-      canvas.drawCircle(_center, _radius,
+      canvas.drawCircle(_center, _radius!, _borderColor);
+      canvas.drawCircle(_center, _radius!,
           Paint()
             ..strokeCap = StrokeCap.round
             ..style = PaintingStyle.stroke
