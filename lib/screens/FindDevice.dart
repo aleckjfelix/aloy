@@ -35,7 +35,7 @@ class BluetoothOffScreen extends StatelessWidget {
                 builder: (context) => HomeScreen(device: null)));
       },
       child:Scaffold(
-        backgroundColor: Colors.lightBlue,
+        backgroundColor: Colors.pink[100]!,
         body: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -123,6 +123,25 @@ class FindDevicesScreen extends StatelessWidget {
             ],
           )
         )
+      ),
+      floatingActionButton: StreamBuilder<bool>(
+        stream: FlutterBlue.instance.isScanning,
+        initialData: false,
+        builder: (c, snapshot) {
+          if (snapshot.data!) {
+            return FloatingActionButton(
+              child: Icon(Icons.stop),
+              onPressed: () => FlutterBlue.instance.stopScan(),
+              backgroundColor: Colors.red[300]!,
+            );
+          } else {
+            return FloatingActionButton(
+                child: Icon(Icons.search),
+                onPressed: () => FlutterBlue.instance
+                    .startScan(timeout: Duration(seconds: 4)),
+                backgroundColor: Colors.pink[100]!);
+          }
+        },
       )
     );
   } // build
