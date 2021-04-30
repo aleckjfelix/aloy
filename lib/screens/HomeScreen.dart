@@ -53,21 +53,6 @@ import 'package:flutter_blue/flutter_blue.dart';
 import 'FindDevice.dart';
 
 /*
- * main method
- */
-void main() {
-  runApp(MyApp());
-}//main method
-
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(home: HomeScreen(device: null));
-  }//build
-
-}//MyApp
-
-/*
  * HomePage
  * States: off, on, Music, Lightshow;
  * Nav to: Menu

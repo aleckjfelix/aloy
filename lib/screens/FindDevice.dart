@@ -1,5 +1,5 @@
 
-import 'package:aloy/screens/main.dart';
+import 'package:aloy/screens/HomeScreen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
