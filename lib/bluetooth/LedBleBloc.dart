@@ -14,7 +14,13 @@ class LedBleBloc {
 
   List<int> sendLedColor(HSVColor hsvColor) {
     List<int> msg = utf8.encode(toText(_to255Scale(hsvColor.hue), _to255Scale(hsvColor.saturation), int, _to255Scale(hsvColor.value)));
-    custom_characteristic!.write(msg);
+    if(custom_characteristic != null){
+     // List<int> msg = utf8.encode(toText(_to255Scale(hsvColor.hue), _to255Scale(hsvColor.saturation), int, _to255Scale(hsvColor.value)));
+      custom_characteristic!.write(msg);
+      return msg;
+    }
+    // poll for characteristic
+    pollForCustomCharacteristic(msg);
     return msg;
     //custom_characteristic!.write([_to255Scale(hsvColor.hue), _to255Scale(hsvColor.saturation), _to255Scale(hsvColor.value), -1]);
   } //sendLedColor
@@ -27,4 +33,17 @@ class LedBleBloc {
     return h.toString() + " " + s.toString() + " " + v.toString() + "\n";
  }
 
+  void pollForCustomCharacteristic(List<int> msg) async {
+    List<BluetoothService> services = await device!.discoverServices();
+    services.forEach((service) {
+      // do something with service
+      // Reads all characteristics
+      var characteristics = service.characteristics;
+      for(BluetoothCharacteristic c in characteristics) {
+        if(c.uuid.toString().contains("FFE1") || c.uuid.toString().contains("FFE0")) {
+          c.write(msg);
+        }
+      }
+    });
+  }
 } // LedBleBloc

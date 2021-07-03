@@ -100,7 +100,7 @@ class FindDevicesScreen extends StatelessWidget {
                                       try {
                                         return HomeScreen(ledBleBloc: _createDeviceBloc(d));
                                       } catch (CharacteristicNotFoundException) {
-                                        return HomeScreen(ledBleBloc: null);
+                                        return HomeScreen(ledBleBloc: LedBleBloc(device: d, custom_characteristic: null));
                                       }
 
                                     }
@@ -129,7 +129,7 @@ class FindDevicesScreen extends StatelessWidget {
                         try {
                           return HomeScreen(ledBleBloc: _createDeviceBloc(r.device));
                         } catch (CharacteristicNotFoundException) {
-                          return HomeScreen(ledBleBloc: null);
+                          return HomeScreen(ledBleBloc: LedBleBloc(device: r.device, custom_characteristic: null));
                         }
                       })),
                     ),
