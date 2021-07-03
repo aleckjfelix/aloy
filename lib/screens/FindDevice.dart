@@ -64,7 +64,7 @@ class BluetoothOffScreen extends StatelessWidget {
 } // BluetoothOffScreen
 
 class FindDevicesScreen extends StatelessWidget {
-  get value => null;
+ // get value => null;
 
 
   @override
@@ -164,11 +164,12 @@ class FindDevicesScreen extends StatelessWidget {
   } // build
 
 
+
   LedBleBloc _createDeviceBloc(BluetoothDevice device) {
     LedBleBloc? myBloc;
     _getCustomCharacteristic(device).then((value) {
       myBloc = LedBleBloc(device: device, custom_characteristic: value);
-    }).catchError(() {
+    }).catchError((e) {
       throw CharacteristicNotFoundException();
     });
 
@@ -179,36 +180,22 @@ class FindDevicesScreen extends StatelessWidget {
     BluetoothCharacteristic result;
     List<BluetoothService> services = await device.discoverServices();
 
+    return Future.sync( () {
+      for(int i = 0; i < services.length;i++){
+        if(services.elementAt(i).uuid.toString().contains("FFE0")){
+          var characteristics = services.elementAt(i).characteristics;
+          for(int j = 0; j < characteristics.length;j++){
+            if(characteristics.elementAt(j).uuid.toString().contains("FFE1")){
+              return characteristics.elementAt(j);
+            }
+          } // loop through characteristics of custom service
+        } // found the custom service
+      } // loop through each service
 
-    for(int i = 0; i < services.length;i++){
-      if(services.elementAt(i).uuid.toString().contains("FFE0")){
-        var characteristics = services.elementAt(i).characteristics;
-        for(int j = 0; j < characteristics.length;j++){
-          if(characteristics.elementAt(j).uuid.toString().contains("FFE1")){
-            return characteristics.elementAt(j);
-          }
-        } // loop through characteristics of custom service
-      } // found the custom service
-    } // loop through each service
-
-    throw CharacteristicNotFoundException('HM-10 Custom Characteristic not found');
-
-    /*
-    services.forEach((service) {
-      if(service.uuid.toString().contains("FFE0")) {
-        var characteristics = service.characteristics;
-        for(BluetoothCharacteristic c in characteristics) {
-          if(c.uuid.toString().contains("FFE1")){
-            result = c;
-            break;
-          }// if it is the HM-10 custom characteristic return it
-        } // for each characteristic in this service
-      } // do something with service
-    }); // for each service
-
-    return result;
-*/
-  }
+      //return null;
+      throw CharacteristicNotFoundException('HM-10 Custom Characteristic not found');
+    });
+  } // _getCustomCharacteristic
   
 } // FindDevicesScreen
 
