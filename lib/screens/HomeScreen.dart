@@ -60,7 +60,7 @@ class HomeScreen extends StatefulWidget {
  // final BluetoothDevice? device;
   final LedBleBloc? ledBleBloc;
 
-  const HomeScreen({Key? key, required this.ledBleBloc}) : super(key: key);
+  const HomeScreen({Key? key, this.ledBleBloc}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
@@ -130,8 +130,11 @@ class _HomeScreenLedState extends State<HomeScreen> {
               svHandlePos: Offset(0.0,0.0),
               showInnerColor: false,
               onSelectionChange: (HSVColor ledColor) {
-                List<int> msg = widget.ledBleBloc!.sendLedColor(ledColor);
-                _showMyDialog(msg.toString());
+                if(widget.ledBleBloc != null) {
+                  List<int> msg = widget.ledBleBloc!.sendLedColor(ledColor) ;
+                  _showMyDialog(msg.toString());
+                }
+                _showMyDialog("Not connected");
                 //print("changing color");
               //  if(!LedBleBloc.sendLedColor(ledColor))
                //   _showMyDialog();
@@ -170,7 +173,7 @@ class _HomeScreenLedState extends State<HomeScreen> {
                   leading: Icon(Icons.bluetooth),
                   title: Text('Devices'),
                   children: <Widget>[
-                    Text('Status: ${widget.ledBleBloc!.device != null ? widget.ledBleBloc!.device!.name : 'not connected'}'),
+                    Text('Status: ${widget.ledBleBloc != null ? widget.ledBleBloc!.device != null ? widget.ledBleBloc!.device!.name : 'not connected' : 'not connected'}'),
                     TextButton(
                       child: Text('Find Device'),
                       onPressed: () {

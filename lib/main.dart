@@ -13,7 +13,7 @@ void main() {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(home: HomeScreen(ledBleBloc: null));
+    return MaterialApp(home: HomeScreen());
   }//build
 
 }//MyApp
