@@ -131,7 +131,8 @@ class _HomeScreenLedState extends State<HomeScreen> {
               svHandlePos: Offset(0.0,0.0),
               showInnerColor: false,
               onSelectionChange: (HSVColor ledColor) {
-                widget.ledBleBloc!.sendLedColor(ledColor);
+                List<int> msg = widget.ledBleBloc!.sendLedColor(ledColor);
+                _showMyDialog(msg.toString());
               //  if(!LedBleBloc.sendLedColor(ledColor))
                //   _showMyDialog();
               },
@@ -204,7 +205,7 @@ class _HomeScreenLedState extends State<HomeScreen> {
 
   }//initState
 
-  Future<void> _showMyDialog() async {
+  Future<void> _showMyDialog(String msg) async {
     return showDialog<void>(
       context: context,
       barrierDismissible: false, // user must tap button!
@@ -214,7 +215,7 @@ class _HomeScreenLedState extends State<HomeScreen> {
           content: SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
-                Text('LEDs aren\'t connected!')
+                Text("sent: " + msg)
               ],
             ),
           ),
