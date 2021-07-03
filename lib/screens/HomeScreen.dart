@@ -44,6 +44,8 @@
 *     -> Info about the App/Why created/Who it's for, ect..
 *
  */
+import 'dart:math';
+
 import 'package:aloy/bluetooth/LedBleBloc.dart';
 import 'package:aloy/widgets/ColorWheel/ColorWheel.dart';
 import 'package:flutter/material.dart';
@@ -126,7 +128,7 @@ class _HomeScreenLedState extends State<HomeScreen> {
               innerBaseStrokeWidth: 18.0,
               handleStrokeWidth: 2.0,
               padding: 8.0,
-              handlePos: 0.0,
+              handlePos: pi / 4.0,
               svHandlePos: Offset(0.0,0.0),
               showInnerColor: false,
               onSelectionChange: (HSVColor ledColor) {
