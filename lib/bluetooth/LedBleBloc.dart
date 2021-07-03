@@ -12,7 +12,7 @@ class LedBleBloc {
   });
 
   void sendLedColor(HSVColor hsvColor) {
-    custom_characteristic!.write([_to255Scale(hsvColor.hue), _to255Scale(hsvColor.saturation), _to255Scale(hsvColor.value)]);
+    custom_characteristic!.write([_to255Scale(hsvColor.hue), _to255Scale(hsvColor.saturation), _to255Scale(hsvColor.value), -1]);
   } //sendLedColor
 
  int _to255Scale(double f) {
