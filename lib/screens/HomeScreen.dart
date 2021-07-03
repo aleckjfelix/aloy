@@ -130,7 +130,8 @@ class _HomeScreenLedState extends State<HomeScreen> {
               handlePos: 0.0,
               svHandlePos: Offset(0.0,0.0),
               showInnerColor: false,
-              onSelectionChange: (Color ledColor) {
+              onSelectionChange: (HSVColor ledColor) {
+                widget.ledBleBloc!.sendLedColor(ledColor);
               //  if(!LedBleBloc.sendLedColor(ledColor))
                //   _showMyDialog();
               },

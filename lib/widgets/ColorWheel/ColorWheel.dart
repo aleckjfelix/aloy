@@ -279,7 +279,7 @@ class _ColorWheelState extends State<ColorWheel> {
       _handleAngle = MathUtils.coordinatesToAngle(pointerPos, canvasCenter);
       _currentHsvColor = _currentHsvColor.withHue(_angleToHue(_handleAngle));
     });
-    widget.onSelectionChange!(_currentHsvColor.toColor()); // call callback function and pass current HSVColor
+    widget.onSelectionChange!(_currentHsvColor); // call callback function and pass current HSVColor
   } // _updateHandleToPointer
 
   void _updateSVHandleToPointer(Offset pointerPos, Offset svOrigin, double svSelectorWidth){
@@ -303,7 +303,7 @@ class _ColorWheelState extends State<ColorWheel> {
       _currentHsvColor = _currentHsvColor.withValue(_svHandlePos.dy/svSelectorWidth);
     }); // update _svHandle triggers rebuild
 
-    widget.onSelectionChange!(_currentHsvColor.toColor()); // call callback function and pass current HSVColor
+    widget.onSelectionChange!(_currentHsvColor); // call callback function and pass current HSVColor
   } // _updateSVHandleToPointer
 
   double _angleToHue(double angle){
