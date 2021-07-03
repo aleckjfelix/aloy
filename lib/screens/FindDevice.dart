@@ -1,4 +1,6 @@
 
+import 'package:aloy/bluetooth/Exceotions/CharacteristicNotFoundException.dart';
+import 'package:aloy/bluetooth/LedBleBloc.dart';
 import 'package:aloy/screens/HomeScreen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -32,7 +34,7 @@ class BluetoothOffScreen extends StatelessWidget {
       onTap: () {
         Navigator.of(context).push(
             MaterialPageRoute(
-                builder: (context) => HomeScreen(device: null)));
+                builder: (context) => HomeScreen(ledBleBloc: null)));
       },
       child:Scaffold(
         backgroundColor: Colors.pink[100]!,
@@ -62,6 +64,9 @@ class BluetoothOffScreen extends StatelessWidget {
 } // BluetoothOffScreen
 
 class FindDevicesScreen extends StatelessWidget {
+  get value => null;
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold (
@@ -91,8 +96,16 @@ class FindDevicesScreen extends StatelessWidget {
                             child: Text('USE'),
                             onPressed: () => Navigator.of(context).push(
                                 MaterialPageRoute(
-                                    builder: (context) => HomeScreen(device: d)))
-                          );
+                                    builder: (context)  {
+                                      try {
+                                        return HomeScreen(ledBleBloc: _createDeviceBloc(d));
+                                      } catch (CharacteristicNotFoundException) {
+                                        return HomeScreen(ledBleBloc: null);
+                                      }
+
+                                    }
+                                    ))
+                            );
                         }
                         return Text(snapshot.data.toString());
                       },
@@ -113,7 +126,11 @@ class FindDevicesScreen extends StatelessWidget {
                       onTap: () => Navigator.of(context)
                           .push(MaterialPageRoute(builder: (context) {
                         r.device.connect();
-                        return HomeScreen(device: r.device, );
+                        try {
+                          return HomeScreen(ledBleBloc: _createDeviceBloc(r.device));
+                        } catch (CharacteristicNotFoundException) {
+                          return HomeScreen(ledBleBloc: null);
+                        }
                       })),
                     ),
                   )
@@ -145,6 +162,53 @@ class FindDevicesScreen extends StatelessWidget {
       )
     );
   } // build
+
+
+  LedBleBloc _createDeviceBloc(BluetoothDevice device) {
+    LedBleBloc? myBloc;
+    _getCustomCharacteristic(device).then((value) {
+      myBloc = LedBleBloc(device: device, custom_characteristic: value);
+    }).catchError(() {
+      throw CharacteristicNotFoundException();
+    });
+
+    return myBloc!;
+  }
+
+  Future<BluetoothCharacteristic> _getCustomCharacteristic(BluetoothDevice device) async {
+    BluetoothCharacteristic result;
+    List<BluetoothService> services = await device.discoverServices();
+
+
+    for(int i = 0; i < services.length;i++){
+      if(services.elementAt(i).uuid.toString().contains("FFE0")){
+        var characteristics = services.elementAt(i).characteristics;
+        for(int j = 0; j < characteristics.length;j++){
+          if(characteristics.elementAt(j).uuid.toString().contains("FFE1")){
+            return characteristics.elementAt(j);
+          }
+        } // loop through characteristics of custom service
+      } // found the custom service
+    } // loop through each service
+
+    throw CharacteristicNotFoundException('HM-10 Custom Characteristic not found');
+
+    /*
+    services.forEach((service) {
+      if(service.uuid.toString().contains("FFE0")) {
+        var characteristics = service.characteristics;
+        for(BluetoothCharacteristic c in characteristics) {
+          if(c.uuid.toString().contains("FFE1")){
+            result = c;
+            break;
+          }// if it is the HM-10 custom characteristic return it
+        } // for each characteristic in this service
+      } // do something with service
+    }); // for each service
+
+    return result;
+*/
+  }
   
 } // FindDevicesScreen
 

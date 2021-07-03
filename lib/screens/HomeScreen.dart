@@ -58,9 +58,10 @@ import 'FindDevice.dart';
  * Nav to: Menu
  */
 class HomeScreen extends StatefulWidget {
-  final BluetoothDevice? device;
+ // final BluetoothDevice? device;
+  final LedBleBloc? ledBleBloc;
 
-  const HomeScreen({Key? key, required this.device}) : super(key: key);
+  const HomeScreen({Key? key, required this.ledBleBloc}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
@@ -167,7 +168,7 @@ class _HomeScreenLedState extends State<HomeScreen> {
                   leading: Icon(Icons.bluetooth),
                   title: Text('Devices'),
                   children: <Widget>[
-                    Text('Status: ${widget.device != null ? widget.device!.name : 'not connected'}'),
+                    Text('Status: ${widget.ledBleBloc!.device != null ? widget.ledBleBloc!.device!.name : 'not connected'}'),
                     TextButton(
                       child: Text('Find Device'),
                       onPressed: () {
@@ -200,9 +201,7 @@ class _HomeScreenLedState extends State<HomeScreen> {
     currentColor = activeColor;
     ledsOn = true;
 
-    LedBleBloc.startScanForBluetoothDevices();
   }//initState
-
 
   Future<void> _showMyDialog() async {
     return showDialog<void>(
@@ -215,33 +214,6 @@ class _HomeScreenLedState extends State<HomeScreen> {
             child: ListBody(
               children: <Widget>[
                 Text('LEDs aren\'t connected!')
-              ],
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: Text('Approve'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Future<void> _showConnectToDeviceDialog() async {
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: false, // user must tap button!
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Alert! Title'),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: <Widget>[
-                Text('Connected to device')
               ],
             ),
           ),
