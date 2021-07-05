@@ -141,7 +141,7 @@ class _HomeScreenLedState extends State<HomeScreen> {
                   //_showMyDialog(msg.toString());
                 }else {
                   setState(() {
-                    bleMsg = "Not connected";
+                    bleMsg = "Not connected: [" + ledColor.hue.toString() + ", " + ledColor.saturation.toString() + ", " + ledColor.value.toString() +"]";
                   });
                   //_showMyDialog("Not connected");
                 }
