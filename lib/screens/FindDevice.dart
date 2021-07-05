@@ -165,15 +165,16 @@ class FindDevicesScreen extends StatelessWidget {
 
 
 
-  LedBleBloc? _createDeviceBloc(BluetoothDevice device) {
+  LedBleBloc _createDeviceBloc(BluetoothDevice device) {
     LedBleBloc? myBloc;
     _getCustomCharacteristic(device).then((value) {
       myBloc = LedBleBloc(device: device, custom_characteristic: value);
+      return myBloc;
     }).catchError((e) {
       throw CharacteristicNotFoundException();
     });
 
-    return myBloc;
+    throw CharacteristicNotFoundException();
   }
 
   Future<BluetoothCharacteristic> _getCustomCharacteristic(BluetoothDevice device) async {
