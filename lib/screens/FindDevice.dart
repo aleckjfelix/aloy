@@ -165,7 +165,7 @@ class FindDevicesScreen extends StatelessWidget {
 
 
 
-  LedBleBloc _createDeviceBloc(BluetoothDevice device) {
+  LedBleBloc? _createDeviceBloc(BluetoothDevice device) {
     LedBleBloc? myBloc;
     _getCustomCharacteristic(device).then((value) {
       myBloc = LedBleBloc(device: device, custom_characteristic: value);
@@ -173,28 +173,27 @@ class FindDevicesScreen extends StatelessWidget {
       throw CharacteristicNotFoundException();
     });
 
-    return myBloc!;
+    return myBloc;
   }
 
   Future<BluetoothCharacteristic> _getCustomCharacteristic(BluetoothDevice device) async {
-    BluetoothCharacteristic result;
     List<BluetoothService> services = await device.discoverServices();
 
-    return Future.sync( () {
-      for(int i = 0; i < services.length;i++){
-        if(services.elementAt(i).uuid.toString().contains("FFE0")){
-          var characteristics = services.elementAt(i).characteristics;
-          for(int j = 0; j < characteristics.length;j++){
-            if(characteristics.elementAt(j).uuid.toString().contains("FFE1")){
-              return characteristics.elementAt(j);
-            }
-          } // loop through characteristics of custom service
-        } // found the custom service
-      } // loop through each service
+    return Future.sync(() {
+        for(BluetoothService service in services) {
+      // do something with service
+      // Reads all characteristics
+      var characteristics = service.characteristics;
+      for(BluetoothCharacteristic c in characteristics) {
+        if(c.uuid.toString().contains("FFE1") || c.uuid.toString().contains("FFE0")) {
+          return c;
+        } // if
+      } // for each characteristic of a service
+    } // for each serivce
 
-      //return null;
-      throw CharacteristicNotFoundException('HM-10 Custom Characteristic not found');
-    });
+    throw CharacteristicNotFoundException();
+    }); // any error throw in here can be caught in .then catch error
+
   } // _getCustomCharacteristic
   
 } // FindDevicesScreen

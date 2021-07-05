@@ -150,7 +150,8 @@ class _ColorWheelState extends State<ColorWheel> {
                     showSVSelector: _showSvSelector,
                     hsvColor: _currentHsvColor,
                     svHandlePos: _svHandlePos
-                )
+                ),
+                child: widget.child,
             )
         )
 

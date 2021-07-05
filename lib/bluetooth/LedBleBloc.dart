@@ -12,17 +12,17 @@ class LedBleBloc {
     required this.custom_characteristic
   });
 
-  List<int> sendLedColor(HSVColor hsvColor) {
-    List<int> msg = utf8.encode(toText(_to255Scale(hsvColor.hue), _to255Scale(hsvColor.saturation), int, _to255Scale(hsvColor.value)));
+  String sendLedColor(HSVColor hsvColor) {
+    String text = toText(_to255Scale(hsvColor.hue), _to255Scale(hsvColor.saturation), int, _to255Scale(hsvColor.value));
+    List<int> msg = utf8.encode(text);
     if(custom_characteristic != null){
      // List<int> msg = utf8.encode(toText(_to255Scale(hsvColor.hue), _to255Scale(hsvColor.saturation), int, _to255Scale(hsvColor.value)));
       custom_characteristic!.write(msg);
-      return msg;
+      return "Color: [" + text + "]" + "\n" + "sent: [" + msg.toString() + "]";
     }
     // poll for characteristic
     pollForCustomCharacteristic(msg);
-    return msg;
-    //custom_characteristic!.write([_to255Scale(hsvColor.hue), _to255Scale(hsvColor.saturation), _to255Scale(hsvColor.value), -1]);
+    return "Color Polled: [" + text + "]" + "\n" + "sent: [" + msg.toString() + "]";
   } //sendLedColor
 
  int _to255Scale(double f) {
@@ -42,8 +42,9 @@ class LedBleBloc {
       for(BluetoothCharacteristic c in characteristics) {
         if(c.uuid.toString().contains("FFE1") || c.uuid.toString().contains("FFE0")) {
           c.write(msg);
+
         }
       }
     });
-  }
+  } // pollForCustomCharacteristic
 } // LedBleBloc

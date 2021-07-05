@@ -81,6 +81,9 @@ class _HomeScreenLedState extends State<HomeScreen> {
   Color currentColor = Colors.grey[400]!;
   Color primaryColor = Colors.pink[100]!;
   bool ledsOn = false;
+
+  // message to debug ble comms
+  String bleMsg = "Not connected";
   @override
   Widget build(BuildContext context) {
     SystemChrome.setEnabledSystemUIOverlays([]); // hide system UI (fullscreen)
@@ -133,14 +136,17 @@ class _HomeScreenLedState extends State<HomeScreen> {
               showInnerColor: false,
               onSelectionChange: (HSVColor ledColor) {
                 if(widget.ledBleBloc != null) {
-                  List<int> msg = widget.ledBleBloc!.sendLedColor(ledColor) ;
-                  _showMyDialog(msg.toString());
+                  bleMsg = widget.ledBleBloc!.sendLedColor(ledColor) ;
+                  //_showMyDialog(msg.toString());
+                }else {
+                  bleMsg = "Not connected";
+                  //_showMyDialog("Not connected");
                 }
-                _showMyDialog("Not connected");
                 //print("changing color");
               //  if(!LedBleBloc.sendLedColor(ledColor))
                //   _showMyDialog();
               },
+              child: Text(bleMsg),
             ),
           ),
       drawer: Drawer(
