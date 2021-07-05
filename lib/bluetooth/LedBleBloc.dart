@@ -22,8 +22,13 @@ class LedBleBloc {
     }
     // poll for characteristic
     String pollReply = "";
-    pollForCustomCharacteristic(msg).then((value) => pollReply);
-    return "Color: [" + hsvColor.hue.toString() + ", " + hsvColor.saturation.toString() + ", " + hsvColor.value.toString() +"]\n" + "Color Scaled: [" + text + "]" + "sent Polled:"+ msg.toString() + "\n" + "Poll Reply: " + pollReply;
+    pollForCustomCharacteristic(msg).then((value) {
+     pollReply = value;
+     return "Color: [" + hsvColor.hue.toString() + ", " + hsvColor.saturation.toString() + ", " + hsvColor.value.toString() +"]\n" + "Color Scaled: [" + text + "]" + "\nsent Polled:"+ msg.toString() + "\n" + "Poll Reply: " + pollReply;
+    }).catchError((e) {
+      return "Color: [" + hsvColor.hue.toString() + ", " + hsvColor.saturation.toString() + ", " + hsvColor.value.toString() +"]\n" + "Color Scaled: [" + text + "]" + "\nsent Polled:"+ msg.toString() + "\n" + "Poll Reply: Error:" +  e.toString();
+    });
+    return "Can't get here";
   } //sendLedColor
 
  int _oneTo255Scale(double f) {
