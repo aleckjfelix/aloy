@@ -60,9 +60,9 @@ import 'FindDevice.dart';
  */
 class HomeScreen extends StatefulWidget {
  // final BluetoothDevice? device;
-  final LedBleBloc? ledBleBloc;
+  final LedBleBloc ledBleBloc;
 
-  const HomeScreen({Key? key, this.ledBleBloc}) : super(key: key);
+  const HomeScreen({Key? key, required this.ledBleBloc}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
@@ -134,22 +134,11 @@ class _HomeScreenLedState extends State<HomeScreen> {
               svHandlePos: Offset(0.0,0.0),
               showInnerColor: false,
               onSelectionChange: (HSVColor ledColor) {
-                if(widget.ledBleBloc != null) {
                   setState(() {
-                    bleMsg = widget.ledBleBloc!.sendLedColor(ledColor) ;
+                     widget.ledBleBloc.sendLedColor(ledColor) ;
                   });
-                  //_showMyDialog(msg.toString());
-                }else {
-                  setState(() {
-                    bleMsg = "Not connected: [" + ledColor.hue.toString() + ", " + ledColor.saturation.toString() + ", " + ledColor.value.toString() +"]";
-                  });
-                  //_showMyDialog("Not connected");
-                }
-                //print("changing color");
-              //  if(!LedBleBloc.sendLedColor(ledColor))
-               //   _showMyDialog();
               },
-              child: Text(bleMsg),
+              child: Text(""),
             ),
           ),
       drawer: Drawer(
@@ -184,7 +173,7 @@ class _HomeScreenLedState extends State<HomeScreen> {
                   leading: Icon(Icons.bluetooth),
                   title: Text('Devices'),
                   children: <Widget>[
-                    Text('Status: ${widget.ledBleBloc != null ? widget.ledBleBloc!.device != null ? widget.ledBleBloc!.device!.name : 'not connected' : 'not connected'}'),
+                    Text('Status: ' + widget.ledBleBloc.getStatus()),
                     TextButton(
                       child: Text('Find Device'),
                       onPressed: () {

@@ -34,7 +34,7 @@ class BluetoothOffScreen extends StatelessWidget {
       onTap: () {
         Navigator.of(context).push(
             MaterialPageRoute(
-                builder: (context) => HomeScreen(ledBleBloc: null)));
+                builder: (context) => HomeScreen(ledBleBloc: LedBleBloc.empty())));
       },
       child:Scaffold(
         backgroundColor: Colors.pink[100]!,
@@ -94,17 +94,9 @@ class FindDevicesScreen extends StatelessWidget {
                         if (snapshot.data == BluetoothDeviceState.connected) {
                           return TextButton(
                             child: Text('USE'),
-                            onPressed: () => Navigator.of(context).push(
-                                MaterialPageRoute(
-                                    builder: (context)  {
-                                      try {
-                                        return HomeScreen(ledBleBloc: _createDeviceBloc(d));
-                                      } catch (CharacteristicNotFoundException) {
-                                        return HomeScreen(ledBleBloc: LedBleBloc(device: d, custom_characteristic: null));
-                                      }
-
-                                    }
-                                    ))
+                            onPressed: () {
+                              _connectAndRouteHome(context, d, false);
+                          },
                             );
                         }
                         return Text(snapshot.data.toString());
@@ -123,15 +115,9 @@ class FindDevicesScreen extends StatelessWidget {
                       .map(
                         (r) => ScanResultTile(
                       result: r,
-                      onTap: () => Navigator.of(context)
-                          .push(MaterialPageRoute(builder: (context) {
-                        r.device.connect();
-                        try {
-                          return HomeScreen(ledBleBloc: _createDeviceBloc(r.device));
-                        } catch (CharacteristicNotFoundException) {
-                          return HomeScreen(ledBleBloc: LedBleBloc(device: r.device, custom_characteristic: null));
-                        }
-                      })),
+                      onTap: () {
+                        _connectAndRouteHome(context, r.device, false);
+                      },
                     ),
                   )
                       .toList(),
@@ -163,18 +149,37 @@ class FindDevicesScreen extends StatelessWidget {
     );
   } // build
 
+  void _connectAndRouteHome(BuildContext buildContext, BluetoothDevice device, bool alreadyConnected ) async{
 
+    if (!alreadyConnected) {
+      try {
+        await device.connect();
+      } catch(_) {
+        // show a dialog message that we could'nt connect
+        _showDialog("Couldn't connect to Device!", buildContext);
+        return;
+      }
+    } // if not connect to device
 
-  LedBleBloc _createDeviceBloc(BluetoothDevice device) {
-    LedBleBloc? myBloc;
-    _getCustomCharacteristic(device).then((value) {
-      myBloc = LedBleBloc(device: device, custom_characteristic: value);
-      return myBloc;
-    }).catchError((e) {
-      throw CharacteristicNotFoundException();
-    });
+    LedBleBloc myBloc;
 
-    throw CharacteristicNotFoundException();
+    try {
+      BluetoothCharacteristic hm10Char = await _getCustomCharacteristic(device);
+      myBloc = LedBleBloc(device: device, customCharacteristic: hm10Char);
+    } catch(CharacteristicNotFoundException){
+      // show a dialog that we couldn't find the Hm-10 custom characteristic
+      myBloc = LedBleBloc.emptyCharacteristic(device);
+      _showDialog("Couldn't find HM-10 ffe1 characteristic!", buildContext);
+      return;
+    }
+
+    // myBloc successfully created navigate back to HomeScreen
+
+    Navigator.of(buildContext).push(
+        MaterialPageRoute(
+        builder: (context)  {
+          return HomeScreen(ledBleBloc: myBloc);
+    }));
   }
 
   Future<BluetoothCharacteristic> _getCustomCharacteristic(BluetoothDevice device) async {
@@ -186,16 +191,45 @@ class FindDevicesScreen extends StatelessWidget {
       // Reads all characteristics
       var characteristics = service.characteristics;
       for(BluetoothCharacteristic c in characteristics) {
-        if(c.uuid.toString().contains("FFE1") || c.uuid.toString().contains("FFE0")) {
+        print(c.uuid.toString());
+        if(c.uuid.toString().contains("ffe1")) {
+          //print("Found the custom characteristic");
           return c;
         } // if
       } // for each characteristic of a service
-    } // for each serivce
+    } // for each service
 
     throw CharacteristicNotFoundException();
     }); // any error throw in here can be caught in .then catch error
 
   } // _getCustomCharacteristic
+
+  Future<void> _showDialog(String msg, BuildContext context) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Alert! Title'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text("sent: " + msg)
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Approve'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  } // _showDialog
   
 } // FindDevicesScreen
 
@@ -229,7 +263,7 @@ class ScanResultTile extends StatelessWidget {
     } else {
       return Text(result.device.id.toString());
     }
-  }
+  } // _buildTitle
 
   Widget _buildAdvRow(BuildContext context, String title, String value) {
     return Padding(
@@ -254,12 +288,12 @@ class ScanResultTile extends StatelessWidget {
         ],
       ),
     );
-  }
+  } // _buildAdvRow
 
   String getNiceHexArray(List<int> bytes) {
     return '[${bytes.map((i) => i.toRadixString(16).padLeft(2, '0')).join(', ')}]'
         .toUpperCase();
-  }
+  } // getNiceHexArray
 
   String getNiceManufacturerData(Map<int, List<int>> data) {
     if (data.isEmpty) {
@@ -271,7 +305,7 @@ class ScanResultTile extends StatelessWidget {
           '${id.toRadixString(16).toUpperCase()}: ${getNiceHexArray(bytes)}');
     });
     return res.join(', ');
-  }
+  } // getNiceManufacturerData
 
   String getNiceServiceData(Map<String, List<int>> data) {
     if (data.isEmpty) {
@@ -282,7 +316,7 @@ class ScanResultTile extends StatelessWidget {
       res.add('${id.toUpperCase()}: ${getNiceHexArray(bytes)}');
     });
     return res.join(', ');
-  }
+  } // getNiceServiceData
 
   @override
   Widget build(BuildContext context) {
@@ -310,5 +344,6 @@ class ScanResultTile extends StatelessWidget {
             getNiceServiceData(result.advertisementData.serviceData)),
       ],
     );
-  }
-}
+  } // build function
+
+} // ScanResultTile
