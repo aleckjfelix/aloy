@@ -168,7 +168,8 @@ class FindDevicesScreen extends StatelessWidget {
       myBloc = LedBleBloc(device: device, customCharacteristic: hm10Char);
     } catch(CharacteristicNotFoundException){
       // show a dialog that we couldn't find the Hm-10 custom characteristic
-      myBloc = LedBleBloc.emptyCharacteristic(device);
+      await device.disconnect();
+      myBloc = LedBleBloc.empty();
       _showDialog("Couldn't find HM-10 ffe1 characteristic!", buildContext);
       return;
     }

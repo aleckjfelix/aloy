@@ -134,9 +134,8 @@ class _HomeScreenLedState extends State<HomeScreen> {
               svHandlePos: Offset(0.0,0.0),
               showInnerColor: false,
               onSelectionChange: (HSVColor ledColor) {
-                  setState(() {
-                     widget.ledBleBloc.sendLedColor(ledColor) ;
-                  });
+                widget.ledBleBloc.sendLedColor(ledColor);
+                print("Executing code after");
               },
               child: Text(""),
             ),
@@ -174,14 +173,36 @@ class _HomeScreenLedState extends State<HomeScreen> {
                   title: Text('Devices'),
                   children: <Widget>[
                     Text('Status: ' + widget.ledBleBloc.getStatus()),
+                    const SizedBox(height: 2),
+                    (widget.ledBleBloc.getDeviceState() == BLEState.connected || widget.ledBleBloc.getDeviceState() == BLEState.connected_no_comms) ? TextButton(
+                        child: Text('Disconnect',
+                        style: TextStyle(color: Colors.red)),
+                        style: TextButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                            minimumSize: Size(50,20),
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
+                      onPressed: () {
+                          setState(() {
+                            widget.ledBleBloc.disconnect();
+
+                          });
+                      },
+                    ):  Text(''),
                     TextButton(
                       child: Text('Find Device'),
+                      style: TextButton.styleFrom(
+                          padding: EdgeInsets.zero,
+                          minimumSize: Size(50,20),
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap
+                      ),
                       onPressed: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(builder: (context) => FindDevice())
                         );
-                      } // onPressed
+                      } ,
+                      // onPressed
                     )
                   ]
               ),
@@ -234,5 +255,7 @@ class _HomeScreenLedState extends State<HomeScreen> {
         );
       },
     );
-  }
+  } // _showDialog
+
+
 } // _HomeScreenLedState

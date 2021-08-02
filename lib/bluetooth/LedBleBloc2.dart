@@ -8,25 +8,22 @@ import 'package:flutter_blue/flutter_blue.dart';
 
 enum BLEState {disconnected, connected, connected_no_comms}
 
-class LedBleBloc {
+class LedBleBloc2 {
   BluetoothDevice? device;
   BluetoothCharacteristic? customCharacteristic;
 
 
   bool _prevMsgSent = true;
-  DateTime _msgSentTime = DateTime.now();
-  Duration timeOutTime = const Duration(milliseconds: 50);
 
   String _status = "";
   var _deviceState = BLEState.disconnected;
 
-
-  LedBleBloc({
+  LedBleBloc2({
     required this.device,
     required this.customCharacteristic,
   }){
     if(this.device == null) {
-      _status = "Not Connected.";
+      _status = " Not Connected.";
       _deviceState = BLEState.disconnected;
     } else if(this.customCharacteristic == null) {
       if(this.device!.name.length <= 11) {
@@ -57,55 +54,42 @@ class LedBleBloc {
 
     if(customCharacteristic != null){
       print("Send Color Called");
-     if(_prevMsgSent){
-       print("Sending color");
-       _prevMsgSent = false;
-       try {
-         await _writeWithTimeOut(msg);
-         _prevMsgSent = true;
-       }catch (_) {
-         print("Exception Caught");
-         _prevMsgSent = true;
-         return;
-       }
-     } // its safe to send next msg
+      if(_prevMsgSent){
+        print("Sending color");
+        _prevMsgSent = false;
+        try {
+          await customCharacteristic!.write(msg, withoutResponse: true);
+          _prevMsgSent = true;
+        }catch (_) {
+          print("Exception Caught");
+          return;
+        }
+      } // its safe to send next msg
     } // we have a characteristic to write to
 
   } //sendLedColor
 
-  Future _writeWithTimeOut(List<int> msg) async{
-    Future foo =  customCharacteristic!.write(msg, withoutResponse: true);
-    return foo.timeout(timeOutTime, onTimeout: (){
-      //cancel future ??
-      throw ('Timeout');
-    });
-
-  }
-
   void disconnect() async{
-    if(device != null) {
+    if(device != null)
       await device!.disconnect();
-      _status = "Not Connected.";
-      _deviceState = BLEState.disconnected;
-    }
   } // disconnect
 
- int _oneTo255Scale(double f) {
+  int _oneTo255Scale(double f) {
     return (f * 255).round();
- }
-int _three60To255Scale(double f) {
+  }
+  int _three60To255Scale(double f) {
     return (f * 0.70833333333).round();
-}
- String toText(int h, int s, int, v) {
+  }
+  String toText(int h, int s, int, v) {
     return h.toString() + " " + s.toString() + " " + v.toString() + "\n";
- }
-
-  static LedBleBloc emptyCharacteristic(BluetoothDevice d) {
-    return LedBleBloc(device: d, customCharacteristic: null);
   }
 
-  static LedBleBloc empty() {
-    return LedBleBloc(device: null, customCharacteristic: null);
+  static LedBleBloc2 emptyCharacteristic(BluetoothDevice d) {
+    return LedBleBloc2(device: d, customCharacteristic: null);
+  }
+
+  static LedBleBloc2 empty() {
+    return LedBleBloc2(device: null, customCharacteristic: null);
   }
 
   String getStatus() {
