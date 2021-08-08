@@ -6,7 +6,7 @@
 import 'package:aloy/screens/HomeScreen.dart';
 import 'package:flutter/material.dart';
 
-import 'bluetooth/LedBleBloc.dart';
+import 'bluetooth/LedBleBloc2.dart';
 
 void main() {
   runApp(MyApp());
@@ -15,7 +15,7 @@ void main() {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(home: HomeScreen(ledBleBloc: LedBleBloc.empty()));
+    return MaterialApp(home: HomeScreen(ledBleBloc: LedBleBloc2.empty()));
   }//build
 
 }//MyApp

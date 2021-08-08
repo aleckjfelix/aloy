@@ -1,4 +1,3 @@
-
 import 'package:aloy/bluetooth/Exceotions/CharacteristicNotFoundException.dart';
 import 'package:aloy/bluetooth/LedBleBloc.dart';
 import 'package:aloy/screens/HomeScreen.dart';
@@ -10,15 +9,15 @@ class FindDevice extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<BluetoothState>(
-      stream: FlutterBlue.instance.state,
-      initialData: BluetoothState.unknown,
-      builder: (c, snapshot) {
-        final state = snapshot.data;
-        if (state == BluetoothState.on) {
-          return FindDevicesScreen();
-        }
-        return BluetoothOffScreen(state: state);
-      } // builder
+        stream: FlutterBlue.instance.state,
+        initialData: BluetoothState.unknown,
+        builder: (c, snapshot) {
+          final state = snapshot.data;
+          if (state == BluetoothState.on) {
+            return FindDevicesScreen();
+          }
+          return BluetoothOffScreen(state: state);
+        } // builder
     );
   } // build
 } // FindDevice
@@ -31,121 +30,123 @@ class BluetoothOffScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        Navigator.of(context).push(
-            MaterialPageRoute(
-                builder: (context) => HomeScreen(ledBleBloc: LedBleBloc.empty())));
-      },
-      child:Scaffold(
-        backgroundColor: Colors.pink[100]!,
-        body: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              Icon(
-                Icons.bluetooth_disabled,
-                size: 200.0,
-                color: Colors.white54,
+        onTap: () {
+          /* NEEDED
+          Navigator.of(context).push(
+              MaterialPageRoute(
+                  builder: (context) => HomeScreen()));
+           */
+        },
+        child:Scaffold(
+          backgroundColor: Colors.pink[100]!,
+          body: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Icon(
+                  Icons.bluetooth_disabled,
+                  size: 200.0,
+                  color: Colors.white54,
 
-              ),
-              Text(
-                'Bluetooth Adapter is ${state != null ? state.toString().substring(15) : 'not available'}.',
-                style: Theme.of(context)
-                    .primaryTextTheme
-                    .subtitle1
-                    ?.copyWith(color: Colors.white),
-              ),
-            ],
+                ),
+                Text(
+                  'Bluetooth Adapter is ${state != null ? state.toString().substring(15) : 'not available'}.',
+                  style: Theme.of(context)
+                      .primaryTextTheme
+                      .subtitle1
+                      ?.copyWith(color: Colors.white),
+                ),
+              ],
+            ),
           ),
-        ),
-      )
+        )
     );
   } // build
 } // BluetoothOffScreen
 
 class FindDevicesScreen extends StatelessWidget {
- // get value => null;
+  // get value => null;
 
 
   @override
   Widget build(BuildContext context) {
     return Scaffold (
-      appBar: AppBar(
-        title: Text('Bluetooth Devices')
-      ),
-      body: RefreshIndicator(
-        onRefresh: () => FlutterBlue.instance.startScan(timeout: Duration(seconds: 4)),
-        child: SingleChildScrollView(
-          child: Column(
-            children: <Widget>[
-              StreamBuilder<List<BluetoothDevice>>(
-                stream: Stream.periodic(Duration(seconds: 2))
-                    .asyncMap((_) => FlutterBlue.instance.connectedDevices),
-                initialData: [],
-                builder: (c, snapshot) => Column(
-                  children: snapshot.data!
-                      .map((d) => ListTile(
-                    title: Text(d.name),
-                    subtitle: Text(d.id.toString()),
-                    trailing: StreamBuilder<BluetoothDeviceState>(
-                      stream: d.state,
-                      initialData: BluetoothDeviceState.disconnected,
-                      builder: (c, snapshot) {
-                        if (snapshot.data == BluetoothDeviceState.connected) {
-                          return TextButton(
-                            child: Text('USE'),
-                            onPressed: () {
-                              _connectAndRouteHome(context, d, false);
-                          },
-                            );
-                        }
-                        return Text(snapshot.data.toString());
-                      },
-                    ),
-                  ))
-                      .toList(),
+        appBar: AppBar(
+            title: Text('Bluetooth Devices')
+        ),
+        body: RefreshIndicator(
+            onRefresh: () => FlutterBlue.instance.startScan(timeout: Duration(seconds: 4)),
+            child: SingleChildScrollView(
+                child: Column(
+                  children: <Widget>[
+                    StreamBuilder<List<BluetoothDevice>>(
+                      stream: Stream.periodic(Duration(seconds: 2))
+                          .asyncMap((_) => FlutterBlue.instance.connectedDevices),
+                      initialData: [],
+                      builder: (c, snapshot) => Column(
+                        children: snapshot.data!
+                            .map((d) => ListTile(
+                          title: Text(d.name),
+                          subtitle: Text(d.id.toString()),
+                          trailing: StreamBuilder<BluetoothDeviceState>(
+                            stream: d.state,
+                            initialData: BluetoothDeviceState.disconnected,
+                            builder: (c, snapshot) {
+                              if (snapshot.data == BluetoothDeviceState.connected) {
+                                return TextButton(
+                                  child: Text('USE'),
+                                  onPressed: () {
+                                    _connectAndRouteHome(context, d, false);
+                                  },
+                                );
+                              }
+                              return Text(snapshot.data.toString());
+                            },
+                          ),
+                        ))
+                            .toList(),
 
-                ),
-              ),
-              StreamBuilder<List<ScanResult>>(
-                stream: FlutterBlue.instance.scanResults,
-                initialData: [],
-                builder: (c, snapshot) => Column(
-                  children: snapshot.data!
-                      .map(
-                        (r) => ScanResultTile(
-                      result: r,
-                      onTap: () {
-                        _connectAndRouteHome(context, r.device, false);
-                      },
+                      ),
                     ),
-                  )
-                      .toList(),
-                ),
-              ),
-            ],
-          )
+                    StreamBuilder<List<ScanResult>>(
+                      stream: FlutterBlue.instance.scanResults,
+                      initialData: [],
+                      builder: (c, snapshot) => Column(
+                        children: snapshot.data!
+                            .map(
+                              (r) => ScanResultTile(
+                            result: r,
+                            onTap: () {
+                              _connectAndRouteHome(context, r.device, false);
+                            },
+                          ),
+                        )
+                            .toList(),
+                      ),
+                    ),
+                  ],
+                )
+            )
+        ),
+        floatingActionButton: StreamBuilder<bool>(
+          stream: FlutterBlue.instance.isScanning,
+          initialData: false,
+          builder: (c, snapshot) {
+            if (snapshot.data!) {
+              return FloatingActionButton(
+                child: Icon(Icons.stop),
+                onPressed: () => FlutterBlue.instance.stopScan(),
+                backgroundColor: Colors.red[300]!,
+              );
+            } else {
+              return FloatingActionButton(
+                  child: Icon(Icons.search),
+                  onPressed: () => FlutterBlue.instance
+                      .startScan(timeout: Duration(seconds: 4)),
+                  backgroundColor: Colors.pink[100]!);
+            }
+          },
         )
-      ),
-      floatingActionButton: StreamBuilder<bool>(
-        stream: FlutterBlue.instance.isScanning,
-        initialData: false,
-        builder: (c, snapshot) {
-          if (snapshot.data!) {
-            return FloatingActionButton(
-              child: Icon(Icons.stop),
-              onPressed: () => FlutterBlue.instance.stopScan(),
-              backgroundColor: Colors.red[300]!,
-            );
-          } else {
-            return FloatingActionButton(
-                child: Icon(Icons.search),
-                onPressed: () => FlutterBlue.instance
-                    .startScan(timeout: Duration(seconds: 4)),
-                backgroundColor: Colors.pink[100]!);
-          }
-        },
-      )
     );
   } // build
 
@@ -175,32 +176,33 @@ class FindDevicesScreen extends StatelessWidget {
     }
 
     // myBloc successfully created navigate back to HomeScreen
-
+/* NEEDED
     Navigator.of(buildContext).push(
         MaterialPageRoute(
-        builder: (context)  {
-          return HomeScreen(ledBleBloc: myBloc);
-    }));
+            builder: (context)  {
+             // return HomeScreen(ledBleBloc: myBloc,);
+            }));
+ */
   }
 
   Future<BluetoothCharacteristic> _getCustomCharacteristic(BluetoothDevice device) async {
     List<BluetoothService> services = await device.discoverServices();
 
     return Future.sync(() {
-        for(BluetoothService service in services) {
-      // do something with service
-      // Reads all characteristics
-      var characteristics = service.characteristics;
-      for(BluetoothCharacteristic c in characteristics) {
-        print(c.uuid.toString());
-        if(c.uuid.toString().contains("ffe1")) {
-          //print("Found the custom characteristic");
-          return c;
-        } // if
-      } // for each characteristic of a service
-    } // for each service
+      for(BluetoothService service in services) {
+        // do something with service
+        // Reads all characteristics
+        var characteristics = service.characteristics;
+        for(BluetoothCharacteristic c in characteristics) {
+          print(c.uuid.toString());
+          if(c.uuid.toString().contains("ffe1")) {
+            //print("Found the custom characteristic");
+            return c;
+          } // if
+        } // for each characteristic of a service
+      } // for each service
 
-    throw CharacteristicNotFoundException();
+      throw CharacteristicNotFoundException();
     }); // any error throw in here can be caught in .then catch error
 
   } // _getCustomCharacteristic
@@ -231,7 +233,7 @@ class FindDevicesScreen extends StatelessWidget {
       },
     );
   } // _showDialog
-  
+
 } // FindDevicesScreen
 
 

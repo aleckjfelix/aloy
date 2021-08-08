@@ -46,12 +46,14 @@
  */
 import 'dart:math';
 
-import 'package:aloy/bluetooth/LedBleBloc.dart';
+//import 'package:aloy/bluetooth/LedBleBloc.dart';
+import 'package:aloy/bluetooth/LedBleBloc2.dart';
 import 'package:aloy/widgets/ColorWheel/ColorWheel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'FindDevice.dart';
+//import 'FindDevice.dart';
+import 'FindDevice2.dart';
 
 /*
  * HomePage
@@ -60,9 +62,9 @@ import 'FindDevice.dart';
  */
 class HomeScreen extends StatefulWidget {
  // final BluetoothDevice? device;
-  final LedBleBloc ledBleBloc;
+  final LedBleBloc2 ledBleBloc; //= LedBleBloc2(); // get the singleton for ledBleBloc
 
-  const HomeScreen({Key? key, required this.ledBleBloc}) : super(key: key);
+  HomeScreen({Key? key, required this.ledBleBloc}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
@@ -83,6 +85,7 @@ class _HomeScreenLedState extends State<HomeScreen> {
   bool ledsOn = false;
   // message to debug ble comms
   String bleMsg = "Not connected";
+  HSVColor colorToSend = HSVColor.fromAHSV(1.0, 0.0, 1.0, 1.0);
   @override
   Widget build(BuildContext context) {
     SystemChrome.setEnabledSystemUIOverlays([]); // hide system UI (fullscreen)
@@ -116,28 +119,39 @@ class _HomeScreenLedState extends State<HomeScreen> {
       ),
       body:
           Center(
-            child: ColorWheel(
-              deactiveColor:  Colors.grey[400]!,
-             // activeColor: activeColor,
-              isActive: ledsOn,
-              handleColor: Colors.white,
-             // innerColor: null,
-             // innerColor: null,
-              animateChild: false,
-              width: 375,
-              height: 375,
-              outerBaseStrokeWidth: 21.0,
-              innerBaseStrokeWidth: 18.0,
-              handleStrokeWidth: 2.0,
-              padding: 8.0,
-              handlePos: 0.0,
-              svHandlePos: Offset(0.0,0.0),
-              showInnerColor: false,
-              onSelectionChange: (HSVColor ledColor) {
-                widget.ledBleBloc.sendLedColor(ledColor);
-                print("Executing code after");
-              },
-              child: Text(""),
+            child: Column(
+              children: <Widget>[
+                ColorWheel(
+                  deactiveColor:  Colors.grey[400]!,
+                  // activeColor: activeColor,
+                  isActive: ledsOn,
+                  handleColor: Colors.white,
+                  // innerColor: null,
+                  // innerColor: null,
+                  animateChild: false,
+                  width: 375,
+                  height: 375,
+                  outerBaseStrokeWidth: 21.0,
+                  innerBaseStrokeWidth: 18.0,
+                  handleStrokeWidth: 2.0,
+                  padding: 8.0,
+                  handlePos: 0.0,
+                  svHandlePos: Offset(0.0,0.0),
+                  showInnerColor: false,
+                  onSelectionChange: (HSVColor ledColor) {
+                    colorToSend = ledColor;
+                    //widget.ledBleBloc.sendLedColor(ledColor);
+                    //print("Executing code after");
+                  },
+                  child: (widget.ledBleBloc.device != null && widget.ledBleBloc.writeCharacteristic != null) ? Text("device:" + widget.ledBleBloc.device!.name + "|Char:" + widget.ledBleBloc.writeCharacteristic!.uuid.toString() + "|status:"+ widget.ledBleBloc.getDeviceState().toString()) : Text('W'),
+                ),
+                TextButton(
+                    onPressed: () {
+                      widget.ledBleBloc.sendLedColor(colorToSend);
+                    },
+                    child: Text("Set Color")
+                )
+              ],
             ),
           ),
       drawer: Drawer(
@@ -199,7 +213,7 @@ class _HomeScreenLedState extends State<HomeScreen> {
                       onPressed: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => FindDevice())
+                          MaterialPageRoute(builder: (context) => FindDevice2())
                         );
                       } ,
                       // onPressed
@@ -229,6 +243,12 @@ class _HomeScreenLedState extends State<HomeScreen> {
     bleMsg = "Not connected";
 
   }//initState
+
+  @override
+  void dispose() {
+    super.dispose();
+    widget.ledBleBloc.stopBleManager(); // free up resources
+  }
 
   Future<void> _showMyDialog(String msg) async {
     return showDialog<void>(
