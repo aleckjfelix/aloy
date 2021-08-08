@@ -3,7 +3,6 @@
 /*
  * main method
  */
-// @dart=2.9
 import 'package:aloy/screens/HomeScreen.dart';
 import 'package:flutter/material.dart';
 import 'bluetooth/LedBleBloc2.dart';
