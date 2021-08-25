@@ -37,6 +37,9 @@ class MathUtils {
     return Offset(otherCoords.dx + otherOrigin.dx, otherOrigin.dy - otherCoords.dy );
   } // CanvasCoordinatesToOtherCoordinates
 
+  /*
+   * Convert coords in Canvas space to other Coordinate space
+   */
   static Offset canvasCoordsToOtherCoords(Offset canvasCoords, Offset otherOrigin){
     return Offset(canvasCoords.dx - otherOrigin.dx, -(canvasCoords.dy - otherOrigin.dy));
   } // canvasCoordsToOtherCoords

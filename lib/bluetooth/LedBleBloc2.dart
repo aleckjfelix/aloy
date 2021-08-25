@@ -1,31 +1,30 @@
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
-import 'dart:ui';
-
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/services.dart';
-//import 'package:flutter_blue/flutter_blue.dart';
 import 'package:flutter_ble_lib/flutter_ble_lib.dart';
+
+
+/*
+ * author: Alec KJ Felix
+ * LedBLEBloc2.dart
+ * A class that handles the managing of bluetooth communication for the LED remote
+ * Uses flutter_ble_lib v2.3.2 -> This has not migrated to null safety therefore must add "--no-sound-null-safety" to
+ * run/build arguments
+ * TODO either use singleton design pattern or Bloc pattern ect..
+ */
 
 enum BLEState {disconnected, connected, connected_no_comms, no_device}
 
-/*
- Class that uses the
-
- */
 class LedBleBloc2 {
 
    Peripheral? device;
    Characteristic? writeCharacteristic;
 
-
-  //bool _prevMsgSent = true;
-
-   String _status = "";
-   var _deviceState = BLEState.no_device;
+   String _status = ""; // Connection status message
+   var _deviceState = BLEState.no_device; // device state
    BleManager _bleManager = BleManager();
 
+   // constructor
    LedBleBloc2({
      required this.device,
      required this.writeCharacteristic,
@@ -43,117 +42,167 @@ class LedBleBloc2 {
   } // LedBleBloc2
     */
 
+   /*
+   * sendLedColor(HSVColor hsvColor)
+   * send color to Leds
+    */
   void sendLedColor(HSVColor hsvColor) async{
     if(device == null || writeCharacteristic == null)
-      return;
+      return; // if no device or writeCharacteristic do nothing
 
     if(_deviceState != BLEState.connected)
-      return;
+      return; // do nothing if not connected
 
-    String text = toText(_three60To255Scale(hsvColor.hue), _oneTo255Scale(hsvColor.saturation), int, _oneTo255Scale(hsvColor.value));
+    String text = toText(_three60To255Scale(hsvColor.hue), _oneTo255Scale(hsvColor.saturation), _oneTo255Scale(hsvColor.value));
     List<int> msg = utf8.encode(text);
 
+    // write with withResponse = false
     writeCharacteristic!.write(Uint8List.fromList(msg), false);
 
   } //sendLedColor
 
+   /*
+   * _oneTo255Scale(double f)
+   * Convert a decimal in range 0-1 to int in range 0 to 255
+   * Used for Saturation/value
+    */
   int _oneTo255Scale(double f) {
     return (f * 255).round();
-  }
+  } // _oneTo255Scale
+
+   /*
+   * _three60To255Scale(double f)
+   * Convert a decimal in range 0-360 to int in range 0 to 255
+   * Used for Hue
+    */
   int _three60To255Scale(double f) {
     return (f * 0.70833333333).round();
-  }
-  String toText(int h, int s, int, v) {
+  } // _three60To255Scale
+
+   /*
+   * toText(int h, int s, int v)
+   * Convert 3 int values 0-255 to a text "VAL1 VAL2 VAL3\n"
+   * which can then be sent to the Arduino Led device which will process the string
+   * and change the color of the leds
+    */
+  String toText(int h, int s, int v) {
     return h.toString() + " " + s.toString() + " " + v.toString() + "\n";
-  }
+  } // toText
 
   String getStatus() {
     return _status;
-  }
+  } // getStatus
 
   BLEState getDeviceState() {
     //await deviceState();
     return _deviceState;
-  }
+  } // getDeviceState
 
   BleManager getBleManager() {
     return _bleManager;
-  }
+  } // getBleManager
 
+   /*
+   * initCharacteristics()
+   * Gets the HM-10 custom write Characteristic
+    */
   Future<void> initCharacteristics() async{
-    print("initCharacteristics");
-    if(device == null) {
-      print("initCharacteristics: No device");
-      return;
-    }
+    if(device == null)
+      return; // if no device do nothing
 
-    if(_deviceState == BLEState.disconnected)
-      await connect();
-    // either connected (with comms), disconnected, or no device
-    await device?.discoverAllServicesAndCharacteristics();
-    print("initCharacteristics: discovered services & chars");
+    if(!await device!.isConnected())
+      await connect(); // connect if disconnected
+
+    // discover devices services and characteristics
+    await device!.discoverAllServicesAndCharacteristics();
+
+    // get list of services
     List<Service> services = await device!.services(); //getting all services
-    print("initCharacteristics: services " + services.length.toString());
-    List<Characteristic> characteristics1 = await device!.characteristics("0000ffe0-0000-1000-8000-00805f9b34fb"); // get list of characteristics
-    print("initCharacteristics: characteristics " + characteristics1.length.toString());
 
+    // get a list of characteristics of the HM-10 custom service uuid="ffe0"
+    List<Characteristic> characteristics1 = await device!.characteristics("0000ffe0-0000-1000-8000-00805f9b34fb"); // get list of characteristics
+
+    // loop through each characteristic and get the HM-10 custom write characteristic uuid="ffe1"
     for(Characteristic characteristic in characteristics1) {
-      print("initCharacteristics: loopings chars");
-      print("\n" + characteristic.uuid.toString());
       if(characteristic.uuid.toString().toLowerCase() == "0000ffe1-0000-1000-8000-00805f9b34fb".toLowerCase()) {
-        print("Characteristic found");
-        writeCharacteristic = characteristic;
-        _deviceState = BLEState.connected;
+        writeCharacteristic = characteristic; // set writeCharacteristic
+        deviceState(); // update device state/status
         return;
       }
+
     } // get writeCharacteristic (HM-10)
 
-    _deviceState = BLEState.connected_no_comms;
-    print("initCharacteristics: Could NOT CONNECT");
-
+    //_deviceState = BLEState.connected_no_comms;
+    deviceState(); // update device state/status
   } // initCharacteristics
 
-
+   /*
+   * connect()
+   * Connect to bluetooth device then update state/status
+    */
   Future<void> connect() async {
     if(device == null || await device!.isConnected()) {
       return;
-    }
-   await device!.connect();
+    } // do nothing if no device or already connected
 
-    await deviceState();
+    await device!.connect(); // connect to device
+
+    await deviceState(); // update device state/status
   } // connect
 
-  void disconnect() async {
+   /*
+    * disconnect()
+    * disconnects from current device if connected otherwise does nothing
+    */
+  Future<void> disconnect() async {
+
     if(device == null || !await device!.isConnected())
-      return;
+      return; // do nothing if no device or already already disconnected
 
-      await device?.disconnectOrCancelConnection();
+      await device?.disconnectOrCancelConnection(); //disconnect device
 
-
-    await deviceState();
+      await deviceState(); // update device state/status
   } // disconnect
 
-  void setDevice(Peripheral newDevice) async {
-    if(device == null)
-      return;
+   /*
+   * setDevice(Peripherial newDevice)
+   * in: Peripheral newDevice
+   * sets this.device to newDevice. Disconnects from old device
+    */
+  Future<void> setDevice(Peripheral newDevice) async {
 
-    disconnect(); // disconnect from current device
+    if(device != null && await device!.isConnected())
+      disconnect(); // disconnect from current device if connected
 
+    // set the device to given device
     device = newDevice;
-    await deviceState();
+    await deviceState(); // update device state/status
   } // setDevice
 
+   /*
+    * startBleManager()
+    * Must call before using any other bluetooth functions
+    * Reservers native client bluetooth resources
+    */
   void startBleManager() async {
     // initialize native client
     // must be called before using any BLE functions
     await _bleManager.createClient();
   } // _startBleManager
 
+   /*
+    * stopBleManager()
+    * frees up native client resources
+    */
   void stopBleManager() async {
     _bleManager.destroyClient();
   } // _stopBleManager
 
-Future<void> deviceState() async{
+   /*
+   * deviceState()
+   * Updates the _state and _status variables
+    */
+  Future<void> deviceState() async{
     if(device == null) {
       _deviceState = BLEState.no_device;
       _status = "No Device.";
@@ -176,28 +225,21 @@ Future<void> deviceState() async{
         _status = this.device!.name.substring(0, 9) + ".. Connected.";
       }
     }
-} // deviceState
+  } // deviceState
 
-static LedBleBloc2 emptyCharacteristic(Peripheral d) {
+   /*
+   * emptyCharacteristic(Peripheral d)
+   * Returns an LedBleBloc2() with device = d and writeCharacteristic = null
+    */
+  static LedBleBloc2 emptyCharacteristic(Peripheral d) {
     return LedBleBloc2(device: d, writeCharacteristic: null);
-}
+  } // emptyCharacteristic
 
-static LedBleBloc2 empty() {
+   /*
+   * empty()
+   * Returns a LedBleBloc2() with device = null and writeCharacteristic = null
+    */
+  static LedBleBloc2 empty() {
     return LedBleBloc2(device: null, writeCharacteristic: null);
-  }
-
-
-  /*
-  Future<void> _checkPermissions() async {
-    if (Platform.isAndroid) {
-      var locGranted = await Permission.location.isGranted;
-      if (locGranted == false) {
-        locGranted = (await Permission.location.request()).isGranted;
-      }
-      if (locGranted == false) {
-        return Future.error(Exception("Location permission not granted"));
-      }
-    }
-  }
-  */
+  } // empty
 } // LedBleBloc

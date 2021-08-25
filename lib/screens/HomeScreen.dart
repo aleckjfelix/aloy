@@ -47,11 +47,13 @@
 import 'dart:math';
 
 //import 'package:aloy/bluetooth/LedBleBloc.dart';
+import 'package:aloy/Data/LedAnimation.dart';
 import 'package:aloy/bluetooth/LedBleBloc2.dart';
 import 'package:aloy/widgets/ColorWheel/ColorWheel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'AnimatorScreen.dart';
 //import 'FindDevice.dart';
 import 'FindDevice2.dart';
 
@@ -63,8 +65,9 @@ import 'FindDevice2.dart';
 class HomeScreen extends StatefulWidget {
  // final BluetoothDevice? device;
   final LedBleBloc2 ledBleBloc; //= LedBleBloc2(); // get the singleton for ledBleBloc
+  final LedAnimation currentAnimation;
 
-  HomeScreen({Key? key, required this.ledBleBloc}) : super(key: key);
+  HomeScreen({Key? key, required this.ledBleBloc, required this.currentAnimation}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
@@ -84,7 +87,6 @@ class _HomeScreenLedState extends State<HomeScreen> {
   Color primaryColor = Colors.pink[100]!;
   bool ledsOn = false;
   // message to debug ble comms
-  String bleMsg = "Not connected";
   HSVColor colorToSend = HSVColor.fromAHSV(1.0, 0.0, 1.0, 1.0);
   @override
   Widget build(BuildContext context) {
@@ -119,9 +121,7 @@ class _HomeScreenLedState extends State<HomeScreen> {
       ),
       body:
           Center(
-            child: Column(
-              children: <Widget>[
-                ColorWheel(
+            child: ColorWheel(
                   deactiveColor:  Colors.grey[400]!,
                   // activeColor: activeColor,
                   isActive: ledsOn,
@@ -138,21 +138,12 @@ class _HomeScreenLedState extends State<HomeScreen> {
                   handlePos: 0.0,
                   svHandlePos: Offset(0.0,0.0),
                   showInnerColor: false,
-                  onSelectionChange: (HSVColor ledColor) {
-                    colorToSend = ledColor;
-                    //widget.ledBleBloc.sendLedColor(ledColor);
+                  onSelectionMade: (HSVColor ledColor) {
+                    //only be called when the finger has been taken off the colorwheel
+                    widget.ledBleBloc.sendLedColor(ledColor);
                     //print("Executing code after");
                   },
-                  child: (widget.ledBleBloc.device != null && widget.ledBleBloc.writeCharacteristic != null) ? Text("device:" + widget.ledBleBloc.device!.name + "|Char:" + widget.ledBleBloc.writeCharacteristic!.uuid.toString() + "|status:"+ widget.ledBleBloc.getDeviceState().toString()) : Text('W'),
                 ),
-                TextButton(
-                    onPressed: () {
-                      widget.ledBleBloc.sendLedColor(colorToSend);
-                    },
-                    child: Text("Set Color")
-                )
-              ],
-            ),
           ),
       drawer: Drawer(
           child: ListView(
@@ -163,7 +154,7 @@ class _HomeScreenLedState extends State<HomeScreen> {
                   color: primaryColor
                 ),
                 child: Text(
-                  'Drawer Header',
+                  'Aloy - Main Menu',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 24
@@ -176,7 +167,41 @@ class _HomeScreenLedState extends State<HomeScreen> {
               ),
               ExpansionTile(
                   leading: Icon(Icons.timeline),
-                  title: Text('Animator Mode')
+                  title: Text('Animator Mode'),
+                  children: <Widget>[
+                    Text("Active Animation: " + widget.currentAnimation.animationName),
+                    const SizedBox(height: 2),
+                    TextButton(
+                      child: Text("Start"),
+                      style: TextButton.styleFrom(
+                          padding: EdgeInsets.zero,
+                          minimumSize: Size(50,20),
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap
+                      ),
+                      onPressed: () {
+                        widget.currentAnimation.run(widget.ledBleBloc);
+                        Navigator.pop(context); // close drawer
+                      },
+                    ),
+                    const SizedBox(height: 2),
+                    TextButton(
+                      child: Text("Open"),
+                      style: TextButton.styleFrom(
+                          padding: EdgeInsets.zero,
+                          minimumSize: Size(50,20),
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap
+                      ),
+                      onPressed: () {
+                        Navigator.pop(context); // close drawer
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => AnimatorScreen(ledBleBloc: widget.ledBleBloc,))
+                        //Navigator.pushReplacementNamed(context, "/AnimatorScreen");
+                        );
+                      },
+                    ),
+
+              ]
               ),
               ListTile(
                   leading: Icon(Icons.schedule_outlined),
@@ -199,6 +224,7 @@ class _HomeScreenLedState extends State<HomeScreen> {
                       onPressed: () {
                           setState(() {
                             widget.ledBleBloc.disconnect();
+                            Navigator.pop(context); // close drawer
 
                           });
                       },
@@ -211,6 +237,7 @@ class _HomeScreenLedState extends State<HomeScreen> {
                           tapTargetSize: MaterialTapTargetSize.shrinkWrap
                       ),
                       onPressed: () {
+                        Navigator.pop(context);
                         Navigator.push(
                           context,
                           MaterialPageRoute(builder: (context) => FindDevice2())
@@ -240,7 +267,6 @@ class _HomeScreenLedState extends State<HomeScreen> {
     print("initState");
     currentColor = activeColor;
     ledsOn = true;
-    bleMsg = "Not connected";
 
   }//initState
 

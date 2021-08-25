@@ -1,13 +1,15 @@
-
 import 'dart:async';
-
-import 'package:aloy/bluetooth/Exceotions/CharacteristicNotFoundException.dart';
-import 'package:aloy/bluetooth/LedBleBloc.dart';
+import 'package:aloy/Data/LedAnimation.dart';
 import 'package:aloy/bluetooth/LedBleBloc2.dart';
 import 'package:aloy/screens/HomeScreen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_ble_lib/flutter_ble_lib.dart';
+
+/*
+ * author: Alec KJ Felix
+ * Uses LecBleBloc2 which uses flutter_ble_lib for bluetooth instead of flutter_blue
+ */
 
 class FindDevice2 extends StatelessWidget {
   LedBleBloc2 _bleBloc = LedBleBloc2.empty(); // obtain instance of bleManager singleton
@@ -41,7 +43,7 @@ class BluetoothOffScreen2 extends StatelessWidget {
         onTap: () {
           Navigator.of(context).push(
               MaterialPageRoute(
-                  builder: (context) => HomeScreen(ledBleBloc: LedBleBloc2.empty())));
+                  builder: (context) => HomeScreen(ledBleBloc: LedBleBloc2.empty(), currentAnimation: LedAnimation.empty(),)));
         },
         child:Scaffold(
           backgroundColor: Colors.pink[100]!,
@@ -53,10 +55,13 @@ class BluetoothOffScreen2 extends StatelessWidget {
                   Icons.bluetooth_disabled,
                   size: 200.0,
                   color: Colors.white54,
-
                 ),
                 Text(
-                'Not connected'
+                  'Bluetooth Adapter is ${state != null ? state.toString().substring(15) : 'not available'}.',
+                  style: Theme.of(context)
+                      .primaryTextTheme
+                      .subtitle1
+                      ?.copyWith(color: Colors.white),
                 ),
               ],
             ),
@@ -65,14 +70,10 @@ class BluetoothOffScreen2 extends StatelessWidget {
     );
   } // build
 } // BluetoothOffScreen
+
 /*
-Text(
-                  'Bluetooth Adapter is ${state != null ? state.toString().substring(15) : 'not available'}.',
-                  style: Theme.of(context)
-                      .primaryTextTheme
-                      .subtitle1
-                      ?.copyWith(color: Colors.white),
-                ),
+* class FindDevicesScreen2
+* Display a list of Bluetooth devices to connect to
  */
 class FindDevicesScreen2 extends StatefulWidget {
   final LedBleBloc2 ledBleBloc;
@@ -83,17 +84,13 @@ class FindDevicesScreen2 extends StatefulWidget {
 } // FindDevicesScreen
 
 class FindDevicesState2 extends State<FindDevicesScreen2> {
-  // get value => null;
-  //LedBleBloc2 Widget.ledBleBloc; //= LedBleBloc2(); // get ledBleBloc singleton
   final List<Peripheral> bleDeviceList = <Peripheral>[];
-
-  //StreamController<Peripheral>? streamController;
 
   @override
   void initState() {
     super.initState();
-    //streamController = StreamController.broadcast();
 
+    // add peripherial to bleDeviceList as they are discovered and update the UI
     widget.ledBleBloc.getBleManager().startPeripheralScan().listen((scanResult) {
       setState(() {
         bleDeviceList.add(scanResult.peripheral);
@@ -102,10 +99,16 @@ class FindDevicesState2 extends State<FindDevicesScreen2> {
   } // createState
 
   @override
+  void deactivate() {
+    super.deactivate();
+    widget.ledBleBloc.getBleManager().stopPeripheralScan();
+  } // deactivate
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold (
         appBar: AppBar(
-            title: Text('Bluetooth Devices')
+            title: Text('Aloy')
         ),
       body: RefreshIndicator(
         onRefresh: () => _refresh(),
@@ -134,52 +137,13 @@ class FindDevicesState2 extends State<FindDevicesScreen2> {
           }
       ),
     );
-
-    /*
-
-        return ListTile(
-      title: Text("A device")
-    );
-
-    return FutureBuilder(
-      future: bleDeviceList[index].isConnected(),
-        builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
-          if (!snapshot.hasData) {
-            return ListTile(
-              trailing: CircularProgressIndicator(),
-            );
-          } else {
-            final bool isconnected = snapshot.data!;
-
-            if(isconnected) {
-              return ListTile(
-                title: Text(bleDeviceList[index].name),
-                subtitle: Text(bleDeviceList[index].identifier),
-                trailing: TextButton(
-                   child: Text('USE'),
-                    onPressed: () {
-                      _connectAndRouteHome(context, bleDeviceList[index], true);
-                    }
-                ),
-              );
-            } else {
-              return ListTile(
-                title: Text(bleDeviceList[index].name),
-                subtitle: Text(bleDeviceList[index].identifier),
-                trailing: TextButton(
-                    child: Text('CONNECT'),
-                    onPressed: () {
-                      _connectAndRouteHome(context, bleDeviceList[index], false);
-                    }
-                ),
-              );
-            } // else peripherial not connected
-          } // snapshot has data
-        } // builder
-    );
-     */
   } // _makeElement
 
+  /*
+   * Connect  to the chose Bluetooth device
+   * set the ledBleBloc device, writeCharacteristic
+   * Return to HomeScreen and pass ledBleBloc
+   */
   void _connectAndRouteHome(BuildContext c, Peripheral d, bool alreadyConnected) async{
     await widget.ledBleBloc.getBleManager().stopPeripheralScan();
 
@@ -191,11 +155,9 @@ class FindDevicesState2 extends State<FindDevicesScreen2> {
         return;
       }
 
-      widget.ledBleBloc.device = d; // set device of ledBloc
-      await widget.ledBleBloc.deviceState(); // update state
-      try {
-        //await widget.ledBleBloc.connect(); // connect to device
+      await widget.ledBleBloc.setDevice(d); // set device of ledBloc
 
+      try {
         await widget.ledBleBloc.initCharacteristics(); // get the characteristic
       } catch(_) {
         _showDialog("Error either connecting or getting Characteristic", c);
@@ -205,7 +167,7 @@ class FindDevicesState2 extends State<FindDevicesScreen2> {
       Navigator.of(c).push(
           MaterialPageRoute(
               builder: (context)  {
-                return HomeScreen(ledBleBloc: widget.ledBleBloc);
+                return HomeScreen(ledBleBloc: widget.ledBleBloc, currentAnimation: LedAnimation.empty(),);
               }));
     } // first connect
 
