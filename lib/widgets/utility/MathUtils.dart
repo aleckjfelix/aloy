@@ -69,4 +69,14 @@ class MathUtils {
         || pointer.dy < (squareCenter.dy - width));
   } // isYCoordWithinSquare
 
+  static double roundToNearestMultiple(double num, int multiple) {
+    double leftN = (num / multiple).floorToDouble();
+    double rightN = leftN + multiple;
+
+    if( (num - leftN) < (rightN - num) )
+      return leftN;
+    return rightN;
+  }
+
+
 } // MathUtils

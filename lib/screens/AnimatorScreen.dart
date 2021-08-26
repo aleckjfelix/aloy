@@ -85,6 +85,7 @@ class AnimatorScreenState extends State<AnimatorScreen> {
             //collapsed: _floatingCollapsed(),
             body: Center(
                 child: ColorGraphAnimator(
+                  periodLength: _periodSliderValue.round(),
                   drawingMode: _drawingMode,
                   selectedSeries: _selectedSeries,
                   tempCallBack: (animation) {
@@ -309,6 +310,7 @@ class AnimatorScreenState extends State<AnimatorScreen> {
                     onPressed: () {
                       // route to HomePage and pass Animation obj
                       // route page back home
+                      LedAnimation savedAnimation = LedAnimation.fillHoles(_periodSliderValue.round() * 50, widget.currentAnimation);
                       Navigator.of(c).push(
                       MaterialPageRoute(
                       builder: (context)  {

@@ -45,6 +45,7 @@ class ColorGraphAnimator extends StatefulWidget {
   final DrawingMode drawingMode;
   final Function? tempCallBack;
   final int periodLength; // length of a period(seconds)
+  final int delta = 20; // ms between each point
 
   ColorGraphAnimator({
     this.drawingMode = DrawingMode.none,
@@ -77,14 +78,15 @@ class ColorGraphAnimatorState extends State<ColorGraphAnimator> {
   @override
   Widget build(BuildContext context) {
     return Container(
-        child: Column(
-        children: <Widget> [SfCartesianChart(
+        margin: new EdgeInsets.fromLTRB(0,20,0, 120),
+        child: Center(
+        child: SfCartesianChart(
               // Initialize category axis
               primaryXAxis: NumericAxis(
                   minimum: 0,
                   maximum: widget.periodLength.toDouble(),
                   title: AxisTitle(
-                      text: 'Fractions Of T'
+                      text: 'Time (sec)'
                   )
               ),
               primaryYAxis: NumericAxis(
@@ -146,8 +148,6 @@ class ColorGraphAnimatorState extends State<ColorGraphAnimator> {
               onChartTouchInteractionMove: _onChartTouchMove,
               onChartTouchInteractionUp: _onChartTouchUp,
             ),
-
-          ]
         )
     );
   } // build()
@@ -164,7 +164,11 @@ class ColorGraphAnimatorState extends State<ColorGraphAnimator> {
    // tapArgs.position.dx
     if(widget.drawingMode == DrawingMode.drawing) {
       // add point at finger position to the correct cord list
-      _addPointToSeries(tapArgs.position, widget.periodLength / 245, 360/230);
+      if(widget.selectedSeries == SelectedSeries.hue)
+        _addPointToSeries(tapArgs.position, widget.periodLength / 245, 360/360);
+      else {
+        _addPointToSeries(tapArgs.position, widget.periodLength / 245, 1/360);
+      }
     }else if(widget.drawingMode == DrawingMode.erasing) {
 
     }
@@ -190,16 +194,17 @@ class ColorGraphAnimatorState extends State<ColorGraphAnimator> {
 
   void _addPointToSeries(Offset tapPos, double xScaleFactor, yScaleFactor) {
     print("tapPos:" + tapPos.dx.toString() + ", " + tapPos.dy.toString());
-    Offset coords = MathUtils.canvasCoordsToOtherCoords(tapPos, Offset(55,230));
+    Offset coords = MathUtils.canvasCoordsToOtherCoords(tapPos, Offset(55,360));
     Offset scaledCoords = Offset(coords.dx * xScaleFactor, coords.dy * yScaleFactor);
     print("tapPos:" + scaledCoords.dx.toString() + ", " + scaledCoords.dy.toString());
+
     setState(() {
       if(widget.selectedSeries == SelectedSeries.hue){
-        currentAnimation.hue_coords.add(Coord(scaledCoords.dx, scaledCoords.dy.round()));
+        currentAnimation.hue_coords.add(Coord(scaledCoords.dx, scaledCoords.dy));
       }else if(widget.selectedSeries == SelectedSeries.saturation){
-        currentAnimation.sat_coords.add(Coord(scaledCoords.dx, scaledCoords.dy.round()));
+        currentAnimation.sat_coords.add(Coord(scaledCoords.dx, scaledCoords.dy));
       }else {
-        currentAnimation.val_coords.add(Coord(scaledCoords.dx, scaledCoords.dy.round()));
+        currentAnimation.val_coords.add(Coord(scaledCoords.dx, scaledCoords.dy));
       } // selected series is SelectedSeries.value
 
       if(widget.tempCallBack != null)
