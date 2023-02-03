@@ -4,6 +4,7 @@
 ## Table of Contents
 * [General Info](#general-information)
 * [Technologies Used](#technologies-used)
+* [Features](#features)
 * [Acknowledgements](#acknowledgements)
 * [Contact](#contact)
 <!--* [Features](#features)
@@ -24,11 +25,13 @@ This project was created as an Annivesary gift. It is intended to be a better lo
   - [syncfusion_flutter_charts](https://pub.dev/packages/syncfusion_flutter_charts) - version 19.2.55 
 - [Android Studio](https://developer.android.com/studio)
 - [CodeMagic CI/CD](https://codemagic.io/start/)
-<!-- 
+
 ## Features
 - HSV Color Wheel
+![hsv wheeel](https://github.com/aleckjfelix/aloy/blob/main/documentation/ColorWheel_01.PNG)
 - Animator Mode
-
+- 
+<!-- 
 ## Setup
 Coming Soon.
 
