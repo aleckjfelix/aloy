@@ -165,9 +165,9 @@ class ColorGraphAnimatorState extends State<ColorGraphAnimator> {
     if(widget.drawingMode == DrawingMode.drawing) {
       // add point at finger position to the correct cord list
       if(widget.selectedSeries == SelectedSeries.hue)
-        _addPointToSeries(tapArgs.position, widget.periodLength / 245, 360/360);
+        _addPointToSeries(tapArgs.position, (341.4-50) / widget.periodLength, (571.4-50)/360);
       else {
-        _addPointToSeries(tapArgs.position, widget.periodLength / 245, 1/360);
+        _addPointToSeries(tapArgs.position, (341.4-50) / widget.periodLength, (571.4-50));
       }
     }else if(widget.drawingMode == DrawingMode.erasing) {
 
@@ -194,9 +194,10 @@ class ColorGraphAnimatorState extends State<ColorGraphAnimator> {
 
   void _addPointToSeries(Offset tapPos, double xScaleFactor, yScaleFactor) {
     print("tapPos:" + tapPos.dx.toString() + ", " + tapPos.dy.toString());
-    Offset coords = MathUtils.canvasCoordsToOtherCoords(tapPos, Offset(55,360));
-    Offset scaledCoords = Offset(coords.dx * xScaleFactor, coords.dy * yScaleFactor);
+    Offset coords = MathUtils.canvasCoordsToOtherCoords(tapPos, Offset(52.5,571.4-50));
+    Offset scaledCoords = Offset(coords.dx / xScaleFactor, coords.dy / yScaleFactor);
     print("tapPos:" + scaledCoords.dx.toString() + ", " + scaledCoords.dy.toString());
+
 
     setState(() {
       if(widget.selectedSeries == SelectedSeries.hue){

@@ -33,6 +33,7 @@ class LedAnimation {
 
 
   void run(LedBleBloc2 bleBloc) async{
+    print(hue_coords.toString());
     return;
     Duration delta = Duration(milliseconds: deltaTime);
     int index = 0;
@@ -56,4 +57,9 @@ class Coord {
   final double x;
   final double y;
   Coord(this.x, this.y);
+
+  @override
+  String toString() {
+    return "(" + x.toString() + "," + y.toString() + ")";
+  }
 } // SalesData

@@ -18,7 +18,6 @@
 *  -> deactive: grayscale image
 * TODO Find way of getting instance vars from painters which are used in_onPanDown
  */
-
 import 'dart:math';
 import 'package:aloy/widgets/ColorWheel/ColorWheelBase.dart';
 import 'package:aloy/widgets/ColorWheel/ColorWheelSelector.dart';
@@ -110,6 +109,7 @@ class _ColorWheelState extends State<ColorWheel> {
   bool _showSvSelector = false;
   Offset _svHandlePos = Offset(0.0,0.0);
   Offset? _oldPointerPos;
+
   void initState() {
     super.initState();
     _currentHsvColor = HSVColor.fromAHSV(1.0, _angleToHue(widget.handlePos), 1.0, 1.0);
@@ -123,43 +123,50 @@ class _ColorWheelState extends State<ColorWheel> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-        height: widget.height, //set to this widgets height or 220 if null
-        width: widget.width,
-        child: GestureDetector(
-            onPanDown: _onPanDown,
-            onPanUpdate: _onPanUpdate,
-            onPanEnd: _onPanEnd,
-            child: CustomPaint(
-                painter: ColorWheelBase(
-                    deactiveColor: widget.deactiveColor,
-                    hsvColor: _currentHsvColor,
-                    isActive: widget.isActive,
-                    padding: widget.padding,
-                    innerStrokeWidth: widget.innerBaseStrokeWidth,
-                    outerCircleStroke: widget.outerBaseStrokeWidth,
-                    innerColor: widget.innerColor,
-                    showInnerColor: widget.showInnerColor
+    return Center(
+      child: GestureDetector(
+          onPanDown: _onPanDown,
+          onPanUpdate: _onPanUpdate,
+          onPanEnd: _onPanEnd,
+          child: CustomPaint(
+              painter: ColorWheelBase(
+                  deactiveColor: widget.deactiveColor,
+                  hsvColor: _currentHsvColor,
+                  isActive: widget.isActive,
+                  padding: widget.padding,
+                  innerStrokeWidth: widget.innerBaseStrokeWidth,
+                  outerCircleStroke: widget.outerBaseStrokeWidth,
+                  innerColor: widget.innerColor,
+                  showInnerColor: widget.showInnerColor
+              ),
+              foregroundPainter: ColorWheelSelector(
+                  handleColor: widget.handleColor,
+                  handleAngle: _handleAngle,
+                  isActive: widget.isActive,
+                  handleStokeWidth: widget.handleStrokeWidth,
+                  outerStrokeWidth: widget.outerBaseStrokeWidth,
+                  innerStrokeWidth: widget.innerBaseStrokeWidth,
+                  padding: widget.padding,
+                  showSVSelector: _showSvSelector,
+                  hsvColor: _currentHsvColor,
+                  svHandlePos: _svHandlePos
+              ),
+              child: Center(
+                child: Container(
+                  padding: EdgeInsets.all(widget.outerBaseStrokeWidth),
+                  child: Container(
+                    width: widget.width - 3 * (widget.outerBaseStrokeWidth + widget.padding),
+                    height: widget.width - 3 * (widget.outerBaseStrokeWidth + widget.padding),
+                    child: Image(
+                        image: widget.isActive ? AssetImage("assets/Aloy_heart01_color.png") : AssetImage("assets/Aloy_heart01_grayscale.png"),
+                      ),
+                  ),
                 ),
-                foregroundPainter: ColorWheelSelector(
-                    handleColor: widget.handleColor,
-                    handleAngle: _handleAngle,
-                    isActive: widget.isActive,
-                    handleStokeWidth: widget.handleStrokeWidth,
-                    outerStrokeWidth: widget.outerBaseStrokeWidth,
-                    innerStrokeWidth: widget.innerBaseStrokeWidth,
-                    padding: widget.padding,
-                    showSVSelector: _showSvSelector,
-                    hsvColor: _currentHsvColor,
-                    svHandlePos: _svHandlePos
-                ),
-                child: Image(
-                  image: widget.isActive ? AssetImage('assets/Aloy_heart01_color.png') : AssetImage('assets/Aloy_heart01_grayscale.png'),
-                )
-            )
-        )
-
+              )
+          )
+      ),
     );
+
   } // build
 
 /*
