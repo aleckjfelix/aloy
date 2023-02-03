@@ -27,10 +27,19 @@ This project was created as an Annivesary gift. It is intended to be a better lo
 - [CodeMagic CI/CD](https://codemagic.io/start/)
 
 ## Features
-- HSV Color Wheel
-![hsv wheeel](https://github.com/aleckjfelix/aloy/blob/main/documentation/ColorWheel_01.PNG)
-- Animator Mode
-- 
+- HSV Color Wheel  
+A custom built Color Wheel widget for changing Hue, Saturation, and Value. Widget is deactivated when the power button (top right of app screen) is turned off.  
+<p align="center">
+<img src="https://github.com/aleckjfelix/aloy/blob/main/documentation/ColorWheel_01.PNG" alt="Color Wheel">
+<img src="https://github.com/aleckjfelix/aloy/blob/main/documentation/ColorWheel_02.PNG" alt="Color Wheel SV select">
+<img src="https://github.com/aleckjfelix/aloy/blob/main/documentation/ColorWheel_03.PNG" alt="Color Wheel inactive">
+</p>
+- Animator Mode  
+In this mode the user can plot Hue/Saturation/Value over a given period T to create endless animations! Plots can be either hand draw on the graph or programmatically entered.  
+<p align="center">
+  <img src="https://github.com/aleckjfelix/aloy/blob/main/documentation/Animator_01.PNG" alt="Animator">
+</p>  
+
 <!-- 
 ## Setup
 Coming Soon.
